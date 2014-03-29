@@ -11,14 +11,15 @@ with open('requirements.txt') as f:
 
 setup(
     name='amber-python-clients',
-    packages=['amber', 'amber.common', 'amber.hokuyo', 'amber.ninedof', 'amber.roboclaw'],
+    packages=['amber', 'amber.common', 'amber.hokuyo', 'amber.ninedof', 'amber.roboclaw', 'amber.tests'],
     package_dir={'amber': 'src/amber',
                  'amber.common': 'src/amber/common',
                  'amber.hokuyo': 'src/amber/hokuyo',
                  'amber.ninedof': 'src/amber/ninedof',
-                 'amber.roboclaw': 'src/amber/roboclaw'},
+                 'amber.roboclaw': 'src/amber/roboclaw',
+                 'amber.tests': 'src/amber/tests'},
     install_requires=required,
-    version='0.1',
+    version='0.2',
     description='Amber clients in python',
     author=u'Paweł Suder',
     author_email='pawel@suder.info',

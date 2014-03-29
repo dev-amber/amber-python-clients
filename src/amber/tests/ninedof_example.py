@@ -1,5 +1,5 @@
 from amber.common import amber_client
-import ninedof
+from amber.ninedof import ninedof
 
 __author__ = 'paoolo'
 

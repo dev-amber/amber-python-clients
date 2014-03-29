@@ -1,5 +1,5 @@
 from amber.common import amber_client
-import hokuyo
+from amber.hokuyo import hokuyo
 
 __author__ = 'paoolo'
 
