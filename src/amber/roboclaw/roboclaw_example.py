@@ -1,4 +1,4 @@
-import amber_client
+from amber.common import amber_client
 import roboclaw
 
 __author__ = 'paoolo'

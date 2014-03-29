@@ -1,6 +1,5 @@
-import amber_proxy
+from amber.common import amber_proxy, future_object
 import drivermsg_pb2
-import future_object
 import hokuyo_pb2
 
 __author__ = 'paoolo'

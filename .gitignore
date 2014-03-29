@@ -1,9 +1,12 @@
-# IDEA
 .idea/
 *.iml
 *.ipr
 *.iws
-
 *.pyc
+
+MANIFEST
+build/
+dist/
+*.egg-info/
 
 *_pb2.py

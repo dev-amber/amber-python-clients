@@ -1,5 +1,5 @@
 package amber.ninedof_proto;
-option java_package = "pl.edu.agh.amber.ninedof.proto";
+option java_package = "pl.edu.agh.amber.amber.ninedof.proto";
 option java_outer_classname = "NinedofProto";
 
 import "drivermsg.proto";
