@@ -1,5 +1,5 @@
 from amber.common import amber_proxy, future_object
-import drivermsg_pb2
+from amber.common import drivermsg_pb2
 import ninedof_pb2
 
 __author__ = 'paoolo'
@@ -102,11 +102,17 @@ class AxesData(object):
     def __init__(self, x_axis, y_axis, z_axis):
         self.x_axis, self.y_axis, self.z_axis = x_axis, y_axis, z_axis
 
+    def __str__(self):
+        return "axes: x=%d, y=%d, z=%d" % (self.x_axis, self.y_axis, self.z_axis)
+
 
 class NinedofData(future_object.FutureObject):
     def __init__(self):
         super(NinedofData, self).__init__()
         self.__accel, self.__gyro, self.__magnet = None, None, None
+
+    def __str__(self):
+        return "accel: %s\ngyro: %s\nmagnet: %s" % (self.__accel, self.__gyro, self.__magnet)
 
     def get_accel(self):
         if not self.is_available():

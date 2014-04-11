@@ -1,5 +1,5 @@
 from amber.common import amber_proxy, future_object
-import drivermsg_pb2
+from amber.common import drivermsg_pb2
 import hokuyo_pb2
 
 __author__ = 'paoolo'
@@ -226,6 +226,15 @@ class VersionInfo(future_object.FutureObject):
         super(VersionInfo, self).__init__()
         self.__vendor, self.__product, self.__firmware, self.__protocol, self.__serial = None, None, None, None, None
 
+    def __str__(self):
+        return "version info:\n" \
+               "\tvendor: %s\n" \
+               "\tproduct: %s\n" \
+               "\tfirmware: %s\n" \
+               "\tprotocol: %s\n" \
+               "\tserial: %s" % (self.__vendor, self.__product, self.__firmware,
+                                 self.__protocol, self.__serial)
+
     def set_vendor(self, vendor):
         self.__vendor = vendor
 
@@ -272,6 +281,18 @@ class SensorState(future_object.FutureObject):
         super(SensorState, self).__init__()
         self.__model, self.__laser, self.__motor_speed, self.__measure_mode = None, None, None, None
         self.__bit_rate, self.__time, self.__diagnostic = None, None, None
+
+    def __str__(self):
+        return "sensor state:\n" \
+               "\tmodel: %s\n" \
+               "\tlaser: %s\n" \
+               "\tmotor speed: %s\n" \
+               "\tmeasure mode: %s\n" \
+               "\tbit rate: %s\n" \
+               "\ttime: %s\n" \
+               "\tdiagnostic: %s" % (self.__model, self.__laser, self.__motor_speed,
+                                     self.__measure_mode, self.__bit_rate, self.__time,
+                                     self.__diagnostic)
 
     def set_model(self, model):
         self.__model = model
@@ -337,6 +358,20 @@ class SensorSpecs(future_object.FutureObject):
         self.__distance_minimum, self.__distance_maximum = 0, 0
         self.__area_resolution, self.__area_minimum, self.__area_maximum, self.__area_front = 0, 0, 0, 0
         self.__motor_speed = 0
+
+    def __str__(self):
+        return "sensor specs:\n" \
+               "\tmodel: %s\n" \
+               "\tdistance minimum: %s\n" \
+               "\tdistance maximum: %s\n" \
+               "\tarea resolution: %s\n" \
+               "\tarea minimum: %s\n" \
+               "\tarea maximum: %s\n" \
+               "\tarea front: %s\n" \
+               "\tmotor speed: %s" % (self.__model,
+                                      self.__distance_minimum, self.__distance_maximum,
+                                      self.__area_resolution, self.__area_minimum, self.__area_maximum,
+                                      self.__area_front, self.__motor_speed)
 
     def set_model(self, model):
         self.__model = model

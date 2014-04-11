@@ -1,5 +1,5 @@
 from amber.common import amber_proxy, future_object
-import drivermsg_pb2
+from amber.common import drivermsg_pb2
 import roboclaw_pb2
 
 __author__ = 'paoolo'
@@ -82,6 +82,10 @@ class MotorsCurrentSpeed(future_object.FutureObject):
         super(MotorsCurrentSpeed, self).__init__()
         self.__front_left_speed, self.__front_right_speed = 0, 0
         self.__rear_left_speed, self.__rear_right_speed = 0, 0
+
+    def __str__(self):
+        return "Speed: fl=%d, fr=%d, rl=%d, rr=%d" % (self.__front_left_speed, self.__front_right_speed,
+                                                      self.__rear_left_speed, self.__rear_right_speed)
 
     def get_front_left_speed(self):
         if not self.is_available():

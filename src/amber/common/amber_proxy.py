@@ -44,7 +44,7 @@ class AmberProxy(object):
         pass
 
     def build_header(self):
-        driver_hdr_builder = drivermsg_pb2.DriverMsg()
+        driver_hdr_builder = drivermsg_pb2.DriverHdr()
         driver_hdr_builder.deviceType = self.__device_type
         driver_hdr_builder.deviceID = self.__device_id
         return driver_hdr_builder

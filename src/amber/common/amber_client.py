@@ -1,7 +1,6 @@
 import socket
+import struct
 import thread
-
-import bitstring
 
 import drivermsg_pb2
 
@@ -38,20 +37,16 @@ class AmberClient(object):
         """
         Sends message to the robot.
         """
-        stream = bitstring.BitStream()
+        data_header = header.SerializeToString()
+        data_header = struct.pack('!H', len(data_header)) + data_header
 
-        length = header.getSerializedSize()
-        stream.append("int:16=%d" % length)
-        stream.append(header.toByteArray())
+        data_message = message.SerializeToString()
+        data_message = struct.pack('!H', len(data_message)) + data_message
 
-        length = message.getSerializedSize()
-        stream.append("int:16=%d" % length)
-        stream.append(message.toByteArray())
+        print "Sending an UDP packet for (%d: %d)." % (header.deviceType, header.deviceID)
 
-        print "Sending an UDP packet for (%d: %d)." % \
-              (header.getDeviceType(), header.getDeviceID())
-
-        self.__socket.send(stream.bytes)
+        stream = data_header + data_message
+        self.__socket.sendto(stream, (self.__hostname, self.__port))
 
     def terminate(self):
         """
@@ -100,14 +95,17 @@ class AmberClient(object):
         if msg_type == drivermsg_pb2.DriverMsg.MsgType.DATA:
             print "DATA message came for (%d: %d), handling." % \
                   (client_proxy.device_type, client_proxy.device_id)
+            client_proxy.handle_data_msg(header, message)
 
         elif msg_type == drivermsg_pb2.DriverMsg.MsgType.PING:
             print "PING message came for (%d: %d), handling." % \
                   (client_proxy.device_type, client_proxy.device_id)
+            client_proxy.handle_ping_message(header, message)
 
         elif msg_type == drivermsg_pb2.DriverMsg.MsgType.PONG:
             print "PONG message came for (%d: %d), handling." % \
                   (client_proxy.device_type, client_proxy.device_id)
+            client_proxy.handle_pong_message(header, message)
 
         elif msg_type == drivermsg_pb2.DriverMsg.MsgType.DRIVER_DIED:
             print "DRIVER_DIED message came dor (%d: %d), handling." % \

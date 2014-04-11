@@ -1,3 +1,5 @@
+import threading
+
 __author__ = 'paoolo'
 
 RECEIVING_BUFFER_SIZE = 4096
@@ -11,6 +13,7 @@ class FutureObject(object):
 
     def __init__(self):
         self.__available, self.__exception = False, None
+        self.__cond = threading.Condition()
 
     def is_available(self):
         """
@@ -24,21 +27,26 @@ class FutureObject(object):
         """
         Blocks until data is available.
         """
+        self.__cond.acquire()
         while not self.__available:
-            # wait()
-            pass
+            self.__cond.wait()
+        self.__cond.release()
 
     def set_available(self):
         """
         Sets the object is available and notifies all waiting clients.
         """
+        self.__cond.acquire()
         self.__available = True
-        # notifyAll()
+        self.__cond.notifyAll()
+        self.__cond.release()
 
     def set_exception(self, e):
         """
         Sets exception and notifies all waiting clients.
         """
+        self.__cond.acquire()
         self.__available = True
         self.__exception = e
-        # notifyAll()
+        self.__cond.notifyAll()
+        self.__cond.release()
