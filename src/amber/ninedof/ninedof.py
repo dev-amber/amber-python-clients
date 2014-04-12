@@ -9,7 +9,7 @@ DEVICE_TYPE = 2
 
 class NinedofProxy(amber_proxy.AmberProxy):
     def __init__(self, amber_client, device_id):
-        super(NinedofProxy, self).__init__(DEVICE_TYPE, device_id, amber_client, None)
+        super(NinedofProxy, self).__init__(DEVICE_TYPE, device_id, amber_client)
         self.__amber_client, self.__syn_num, self.__future_objs = amber_client, 0, {}
 
         print('Starting and registering RoboclawProxy.')

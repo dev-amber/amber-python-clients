@@ -2,8 +2,7 @@ import threading
 
 __author__ = 'paoolo'
 
-RECEIVING_BUFFER_SIZE = 4096
-DEFAULT_PORT = 26233
+TIMEOUT = 60
 
 
 class FutureObject(object):
@@ -29,7 +28,7 @@ class FutureObject(object):
         """
         self.__cond.acquire()
         while not self.__available:
-            self.__cond.wait()
+            self.__cond.wait(TIMEOUT)
         self.__cond.release()
 
     def set_available(self):

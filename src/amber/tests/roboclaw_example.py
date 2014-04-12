@@ -8,5 +8,4 @@ if __name__ == '__main__':
     proxy = roboclaw.RoboclawProxy(client, 0)
 
     proxy.send_motors_command(100, 100, 100, 100)
-    speeds = proxy.get_current_motors_speed()
-    print speeds.get_front_left_speed()
+    print(proxy.get_current_motors_speed())

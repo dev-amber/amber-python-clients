@@ -1,12 +1,12 @@
 import abc
+import logging
 
 import drivermsg_pb2
 
 
 __author__ = 'paoolo'
 
-RECEIVING_BUFFER_SIZE = 4096
-DEFAULT_PORT = 26233
+LOGGER_NAME = 'Amber.Proxy'
 
 
 class AmberProxy(object):
@@ -14,12 +14,15 @@ class AmberProxy(object):
     Abstract class used to create proxies that connects to robot's devices.
     """
 
-    def __init__(self, device_type, device_id, amber_client, logger):
+    def __init__(self, device_type, device_id, amber_client):
         """
         Generic proxy constructor. Must be invoked from subclasses.
         """
         self.__device_type, self.__device_id = device_type, device_id
-        self.__amber_client, self.__logger = amber_client, logger
+        self.__amber_client = amber_client
+
+        self.__logger = logging.Logger(LOGGER_NAME)
+        self.__logger.addHandler(logging.StreamHandler())
 
     @abc.abstractmethod
     def handle_data_msg(self, header, message):
@@ -53,9 +56,9 @@ class AmberProxy(object):
         """
         Sends "client died" message and terminates the proxy.
         """
-        print "Terminating proxy."
+        self.__logger.info("Terminating proxy.")
 
-        driver_msg_builder = drivermsg_pb2.DriverMsg
-        driver_msg_builder.type = drivermsg_pb2.DriverMsg.MsgType.CLIENT_DIED
+        driver_msg_builder = drivermsg_pb2.DriverMsg()
+        driver_msg_builder.type = drivermsg_pb2.DriverMsg.CLIENT_DIED
 
         self.__amber_client.send_message(self.build_header(), driver_msg_builder)

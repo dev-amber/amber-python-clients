@@ -9,7 +9,7 @@ DEVICE_TYPE = 4
 
 class HokuyoProxy(amber_proxy.AmberProxy):
     def __init__(self, amber_client, device_id):
-        super(HokuyoProxy, self).__init__(DEVICE_TYPE, device_id, amber_client, None)
+        super(HokuyoProxy, self).__init__(DEVICE_TYPE, device_id, amber_client)
         self.__amber_client, self.__syn_num, self.__future_objs = amber_client, 0, {}
 
         print('Starting and registering HokuyoProxy.')
@@ -71,7 +71,7 @@ class HokuyoProxy(amber_proxy.AmberProxy):
     def __build_reset_req_msg(self):
         driver_msg = drivermsg_pb2.DriverMsg()
 
-        driver_msg.type = driver_msg.DriverMsg.DATA
+        driver_msg.type = drivermsg_pb2.DriverMsg.DATA
         driver_msg.Extensions[hokuyo_pb2.reset] = True
 
         return driver_msg
@@ -195,7 +195,6 @@ class HokuyoProxy(amber_proxy.AmberProxy):
 
         return sensor_specs
 
-
     def __build_get_sensor_specs_req_msg(self, syn_num):
         driver_msg = drivermsg_pb2.DriverMsg()
 
@@ -227,6 +226,8 @@ class VersionInfo(future_object.FutureObject):
         self.__vendor, self.__product, self.__firmware, self.__protocol, self.__serial = None, None, None, None, None
 
     def __str__(self):
+        if not self.is_available():
+            self.wait_available()
         return "version info:\n" \
                "\tvendor: %s\n" \
                "\tproduct: %s\n" \
@@ -283,6 +284,8 @@ class SensorState(future_object.FutureObject):
         self.__bit_rate, self.__time, self.__diagnostic = None, None, None
 
     def __str__(self):
+        if not self.is_available():
+            self.wait_available()
         return "sensor state:\n" \
                "\tmodel: %s\n" \
                "\tlaser: %s\n" \
@@ -360,6 +363,8 @@ class SensorSpecs(future_object.FutureObject):
         self.__motor_speed = 0
 
     def __str__(self):
+        if not self.is_available():
+            self.wait_available()
         return "sensor specs:\n" \
                "\tmodel: %s\n" \
                "\tdistance minimum: %s\n" \
