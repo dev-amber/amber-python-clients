@@ -9,3 +9,5 @@ if __name__ == '__main__':
 
     print(proxy.get_axes_data(True, True, True))
     # TODO: use listener
+
+    client.terminate()

@@ -84,6 +84,7 @@ class DummyProxy(amber_proxy.AmberProxy):
     def __fill_status(self, status, message):
         status.set_enable(message.Extensions[dummy_pb2.enable])
         status.set_message(message.Extensions[dummy_pb2.message])
+        status.set_available()
 
 
 class Status(future_object.FutureObject):

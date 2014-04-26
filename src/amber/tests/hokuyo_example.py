@@ -16,3 +16,5 @@ if __name__ == '__main__':
     print(proxy.get_sensor_state())
     print(proxy.get_sensor_specs())
     # print(proxy.get_single_scan())
+
+    client.terminate()

@@ -13,3 +13,5 @@ if __name__ == '__main__':
     proxy.set_message('Hello')
 
     print(proxy.get_status())
+
+    client.terminate()

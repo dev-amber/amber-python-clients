@@ -169,7 +169,7 @@ class HokuyoProxy(amber_proxy.AmberProxy):
 
         sensor_state.set_model(state.model)
 
-        sensor_state.set_Laser(state.laser)
+        sensor_state.set_laser(state.laser)
 
         sensor_state.set_motor_speed(state.motor_speed)
         sensor_state.set_measure_mode(state.measure_mode)

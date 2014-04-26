@@ -9,3 +9,5 @@ if __name__ == '__main__':
 
     proxy.send_motors_command(100, 100, 100, 100)
     print(proxy.get_current_motors_speed())
+
+    client.terminate()

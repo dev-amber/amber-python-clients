@@ -79,63 +79,97 @@ class AmberClient(object):
         """
         Terminates all registered proxies.
         """
-        for proxy in self.__proxy_map.items():
+        for proxy in self.__proxy_map.itervalues():
             proxy.terminate_proxy()
+
+    def __deserialize_data(self, packet):
+        # TODO: make it better
+
+        header = drivermsg_pb2.DriverHdr()
+        message = drivermsg_pb2.DriverMsg()
+
+        header_len = struct.unpack('!H', packet[:2])[0]
+        message_offset = header_len + 2
+
+        message_len = struct.unpack('!H', packet[message_offset:message_offset + 2])[0]
+
+        header.ParseFromString(packet[2:header_len + 2])
+        message.ParseFromString(packet[message_offset + 2:message_offset + message_len + 2])
+
+        return header, message
 
     def message_receiving_loop(self):
         # noinspection PyBroadException
         while self.__alive:
-            self.__logger.info("Entering socket.receive().")
+            self.__logger.info('Waiting for message from mediator.')
             packet, _ = self.__socket.recvfrom(RECEIVING_BUFFER_SIZE)
-            # TODO get this message
+            header, message = self.__deserialize_data(packet)
+
+            print header, message
+
+            if not header.HasField('deviceType') \
+                    or not header.HasField('deviceID') \
+                    or header.HasField('deviceType') == 0:
+                self.__handle_message_from_mediator(header, message)
+
+            else:
+                key = (header.deviceType, header.deviceID)
+                client_proxy = self.__proxy_map[key] if key in self.__proxy_map else None
+                if client_proxy is not None:
+                    self.__handle_message_from_driver(header, message, client_proxy)
+                else:
+                    self.__logger.warn('Cannot find client proxy for device type %d and device ID %d' %
+                                       (header.deviceType, header.deviceID))
 
     def __handle_message_from_mediator(self, header, message):
         msg_type = message.type
-        if msg_type == drivermsg_pb2.DriverMsg.MsgType.DATA:
-            self.__logger.info("DATA message came, but device details not set, ignoring.")
+        if msg_type == drivermsg_pb2.DriverMsg.DATA:
+            self.__logger.info('DATA message came, but device details not set, ignoring.')
 
-        elif msg_type == drivermsg_pb2.DriverMsg.MsgType.PING:
-            self.__logger.info("PING message came, handling.")
+        elif msg_type == drivermsg_pb2.DriverMsg.PING:
+            self.__logger.info('PING message came, handling.')
             self.__handle_ping_message(header, message)
 
-        elif msg_type == drivermsg_pb2.DriverMsg.MsgType.PONG:
-            self.__logger.info("PONG message came, handling.")
+        elif msg_type == drivermsg_pb2.DriverMsg.PONG:
+            self.__logger.info('PONG message came, handling.')
             self.__handle_pong_message(header, message)
 
-        elif msg_type == drivermsg_pb2.DriverMsg.MsgType.DRIVER_DIED:
-            self.__logger.info("DRIVER_DIED message came, but device details not set, ignoring.")
+        elif msg_type == drivermsg_pb2.DriverMsg.DRIVER_DIED:
+            self.__logger.info('DRIVER_DIED message came, but device details not set, ignoring.')
 
         else:
-            self.__logger.info("Unexpected message came: %s, ignoring." % (str(message.get_type())))
+            self.__logger.info('Unexpected message came: %s, ignoring.' % str(msg_type))
 
     def __handle_message_from_driver(self, header, message, client_proxy):
-        msg_type = message.get_type()
-        if msg_type == drivermsg_pb2.DriverMsg.MsgType.DATA:
-            self.__logger.info("DATA message came for (%d: %d), handling." %
-                               (client_proxy.device_type, client_proxy.device_id))
+        msg_type = message.type
+        if msg_type == drivermsg_pb2.DriverMsg.DATA:
+            self.__logger.info('DATA message came for device type %d and device ID %d' %
+                               (client_proxy.deviceType, client_proxy.deviceID))
             client_proxy.handle_data_msg(header, message)
 
-        elif msg_type == drivermsg_pb2.DriverMsg.MsgType.PING:
-            self.__logger.info("PING message came for (%d: %d), handling." %
-                               (client_proxy.device_type, client_proxy.device_id))
+        elif msg_type == drivermsg_pb2.DriverMsg.PING:
+            self.__logger.info('PING message came for device type %d and device ID %d' %
+                               (client_proxy.deviceType, client_proxy.deviceID))
             client_proxy.handle_ping_message(header, message)
 
-        elif msg_type == drivermsg_pb2.DriverMsg.MsgType.PONG:
-            self.__logger.info("PONG message came for (%d: %d), handling." %
-                               (client_proxy.device_type, client_proxy.device_id))
+        elif msg_type == drivermsg_pb2.DriverMsg.PONG:
+            self.__logger.info('PONG message came for device type %d and device ID %d' %
+                               (client_proxy.deviceType, client_proxy.deviceID))
             client_proxy.handle_pong_message(header, message)
 
-        elif msg_type == drivermsg_pb2.DriverMsg.MsgType.DRIVER_DIED:
-            self.__logger.info("DRIVER_DIED message came dor (%d: %d), handling." %
-                               (client_proxy.device_type, client_proxy.device_id))
+        elif msg_type == drivermsg_pb2.DriverMsg.DRIVER_DIED:
+            self.__logger.info('DRIVER_DIED message came for device type %d and device ID %d' %
+                               (client_proxy.deviceType, client_proxy.deviceID))
             client_proxy.handle_driver_died_message(header, message)
 
         else:
-            self.__logger.info("Unexpected message came %s for (%d: %d), ignoring." %
-                               (str(message.get_type()), client_proxy.device_type, client_proxy.device_id))
+            self.__logger.info('Unexpected message came %s for (%d: %d), ignoring.' %
+                               (str(msg_type), client_proxy.deviceType, client_proxy.deviceID))
 
     def __handle_ping_message(self, header, message):
-        pass
+        self.__logger.info('Handle PING message from (%s: %s), nothing to do.' %
+                           (str(header.deviceType), str(header.deviceID)))
 
     def __handle_pong_message(self, header, message):
-        pass
+        self.__logger.info('Handle PONG message from (%s: %s), nothing to do.' %
+                           (str(header.deviceType), str(header.deviceID)))
