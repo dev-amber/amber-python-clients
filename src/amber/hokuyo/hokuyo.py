@@ -1,10 +1,16 @@
 from amber.common import amber_proxy, future_object
 from amber.common import drivermsg_pb2
+from amber.common.listener import Listener
 import hokuyo_pb2
 
 __author__ = 'paoolo'
 
 DEVICE_TYPE = 4
+
+
+class HokuyoListener(Listener):
+    def handle(self, response):
+        print str(response)
 
 
 class HokuyoProxy(amber_proxy.AmberProxy):
@@ -14,10 +20,41 @@ class HokuyoProxy(amber_proxy.AmberProxy):
 
         print('Starting and registering HokuyoProxy.')
 
+    def subscribe(self, listener):
+        print('Subscribe')
+
+        self.__listener = listener
+        driver_msg = self.__build_subscribe_action_msg()
+        self.__amber_client.send_message(self.build_header(), driver_msg)
+
+    def __build_subscribe_action_msg(self):
+        driver_msg = drivermsg_pb2.DriverMsg()
+        driver_msg.type = drivermsg_pb2.DriverMsg.SUBSCRIBE
+        return driver_msg
+
+    def unsubscribe(self):
+        print('Unsubscribe')
+
+        driver_msg = self.__build_unsubscribe_action_msg()
+        self.__amber_client.send_message(self.build_header(), driver_msg)
+
+    def __build_unsubscribe_action_msg(self):
+        driver_msg = drivermsg_pb2.DriverMsg()
+        driver_msg.type = drivermsg_pb2.DriverMsg.UNSUBSCRIBE
+        return driver_msg
+
     def handle_data_msg(self, header, message):
         print('Handling data message')
 
-        if message.HasField('ackNum') and message.ackNum != 0:
+        if not message.HasField('ackNum') or message.ackNum == 0:
+            if message.HasExtension(hokuyo_pb2.scan):
+                scan = Scan()
+                self.__fill_scan(scan, message)
+                scan.set_available()
+                if self.__listener is not None:
+                    self.__listener.handle(scan)
+
+        elif message.HasField('ackNum') and message.ackNum != 0:
             ack_num = message.ackNum
             if ack_num in self.__future_objs:
                 obj = self.__future_objs[ack_num]
@@ -29,82 +66,12 @@ class HokuyoProxy(amber_proxy.AmberProxy):
                     self.__fill_sensor_state(obj, message)
                 elif isinstance(obj, SensorSpecs):
                     self.__fill_sensor_specs(obj, message)
+                elif isinstance(obj, Scan):
+                    self.__fill_scan(obj, message)
 
     def __get_next_syn_num(self):
         self.__syn_num += 1
         return self.__syn_num
-
-    def laser_on(self):
-        print('Laser on.')
-
-        driver_msg = self.__build_laser_on_req_msg()
-        self.__amber_client.send_message(self.build_header(), driver_msg)
-
-    def __build_laser_on_req_msg(self):
-        driver_msg = drivermsg_pb2.DriverMsg()
-
-        driver_msg.type = drivermsg_pb2.DriverMsg.DATA
-        driver_msg.Extensions[hokuyo_pb2.laser_on] = True
-
-        return driver_msg
-
-    def laser_off(self):
-        print('Laser off.')
-
-        driver_msg = self.__build_laser_off_req_msg()
-        self.__amber_client.send_message(self.build_header(), driver_msg)
-
-    def __build_laser_off_req_msg(self):
-        driver_msg = drivermsg_pb2.DriverMsg()
-
-        driver_msg.type = drivermsg_pb2.DriverMsg.DATA
-        driver_msg.Extensions[hokuyo_pb2.laser_off] = True
-
-        return driver_msg
-
-    def reset(self):
-        print('Reset.')
-
-        driver_msg = self.__build_reset_req_msg()
-        self.__amber_client.send_message(self.build_header(), driver_msg)
-
-    def __build_reset_req_msg(self):
-        driver_msg = drivermsg_pb2.DriverMsg()
-
-        driver_msg.type = drivermsg_pb2.DriverMsg.DATA
-        driver_msg.Extensions[hokuyo_pb2.reset] = True
-
-        return driver_msg
-
-    def set_motor_speed(self, motor_speed):
-        print('Set motor speed to %d.' % motor_speed)
-
-        driver_msg = self.__build_set_motor_speed_req_msg(motor_speed)
-        self.__amber_client.send_message(self.build_header(), driver_msg)
-
-    def __build_set_motor_speed_req_msg(self, motor_speed):
-        driver_msg = drivermsg_pb2.DriverMsg()
-
-        driver_msg.type = drivermsg_pb2.DriverMsg.DATA
-        driver_msg.Extensions[hokuyo_pb2.set_motor_speed] = True
-        driver_msg.Extensions[hokuyo_pb2.motor_speed] = motor_speed
-
-        return driver_msg
-
-    def set_high_sensitive(self, enable):
-        print('Set high sensitive to %r.' % enable)
-
-        driver_msg = self.__build_set_high_sensitive_req_msg(enable)
-        self.__amber_client.send_message(self.build_header(), driver_msg)
-
-    def __build_set_high_sensitive_req_msg(self, enable):
-        driver_msg = drivermsg_pb2.DriverMsg()
-
-        driver_msg.type = drivermsg_pb2.DriverMsg.DATA
-        driver_msg.Extensions[hokuyo_pb2.set_high_sensitive] = True
-        driver_msg.Extensions[hokuyo_pb2.high_sensitive] = enable
-
-        return driver_msg
 
     def get_version_info(self):
         print('Get version info.')
@@ -218,6 +185,38 @@ class HokuyoProxy(amber_proxy.AmberProxy):
         sensor_specs.set_area_front(specs.area_front)
 
         sensor_specs.set_motor_speed(specs.motor_speed)
+
+        sensor_specs.set_available()
+
+    def get_single_scan(self):
+        print('Get single scan')
+
+        syn_num = self.__get_next_syn_num()
+
+        driver_msg = self.__build_get_single_scan_req_msg(syn_num)
+
+        scan = Scan()
+        self.__future_objs[syn_num] = scan
+
+        self.__amber_client.send_message(self.build_header(), driver_msg)
+
+        return scan
+
+    def __build_get_single_scan_req_msg(self, syn_num):
+        driver_msg = drivermsg_pb2.DriverMsg()
+
+        driver_msg.type = drivermsg_pb2.DriverMsg.DATA
+        driver_msg.Extensions[hokuyo_pb2.get_single_scan] = True
+        driver_msg.synNum = syn_num
+
+        return driver_msg
+
+    def __fill_scan(self, scan, message):
+        _scan = message.Extensions[hokuyo_pb2.scan]
+
+        scan.set_points(_scan.angles, _scan.distances)
+
+        scan.set_available()
 
 
 class VersionInfo(future_object.FutureObject):
@@ -441,3 +440,17 @@ class SensorSpecs(future_object.FutureObject):
         if not self.is_available():
             self.wait_available()
         return self.__motor_speed
+
+
+class Scan(future_object.FutureObject):
+    def __init__(self):
+        super(Scan, self).__init__()
+        self.__points = None
+
+    def set_points(self, angles, distances):
+        self.__points = dict(zip(angles, distances))
+
+    def get_points(self):
+        if not self.is_available():
+            self.wait_available()
+        return self.__points

@@ -20,7 +20,7 @@ setup(
                  'amber.roboclaw': 'src/amber/roboclaw',
                  'amber.tests': 'src/amber/tests'},
     install_requires=required,
-    version='0.3',
+    version='0.4',
     description='Amber clients in python',
     author=u'Paweł Suder',
     author_email='pawel@suder.info',

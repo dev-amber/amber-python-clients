@@ -2,6 +2,7 @@ import logging
 import socket
 import struct
 import threading
+import traceback
 
 from amber.common import runtime
 import drivermsg_pb2
@@ -10,7 +11,7 @@ import drivermsg_pb2
 __author__ = 'paoolo'
 
 LOGGER_NAME = 'Amber.Client'
-RECEIVING_BUFFER_SIZE = 4096
+RECEIVING_BUFFER_SIZE = 16384
 DEFAULT_PORT = 26233
 
 
@@ -44,14 +45,14 @@ class AmberClient(object):
 
     def __serialize_data(self, data):
         data = data.SerializeToString()
-        data = struct.pack('!H', len(data)) + data
+        data = struct.pack('!h', len(data)) + data
         return data
 
     def send_message(self, header, message):
         """
         Sends message to the robot.
         """
-        self.__logger.info("Sending message for (%d: %d):\n\theader=%s.\n\tmessage=%s." %
+        self.__logger.info("Sending message for (%d: %d):\nheader=%s.\nmessage=%s." %
                            (header.deviceType, header.deviceID, str(header), str(message)))
 
         data_header = self.__serialize_data(header)
@@ -71,7 +72,11 @@ class AmberClient(object):
             self.terminate_proxies()
 
             self.__alive = False
-            self.__socket.shutdown(socket.SHUT_RDWR)
+            try:
+                self.__socket.shutdown(socket.SHUT_RDWR)
+            except socket.error:
+                # .. silent pass ..
+                pass
             self.__socket.close()
             self.__receiving_thread.join(1)
 
@@ -88,38 +93,42 @@ class AmberClient(object):
         header = drivermsg_pb2.DriverHdr()
         message = drivermsg_pb2.DriverMsg()
 
-        header_len = struct.unpack('!H', packet[:2])[0]
+        header_len = struct.unpack('!h', packet[:2])[0]
+        header_start = 2
         message_offset = header_len + 2
 
-        message_len = struct.unpack('!H', packet[message_offset:message_offset + 2])[0]
+        message_len = struct.unpack('!h', packet[message_offset:message_offset + 2])[0]
+        message_start = message_offset + 2
 
-        header.ParseFromString(packet[2:header_len + 2])
-        message.ParseFromString(packet[message_offset + 2:message_offset + message_len + 2])
+        header.ParseFromString(packet[header_start:header_len + header_start])
+        message.ParseFromString(packet[message_start:message_len + message_start])
 
         return header, message
 
     def message_receiving_loop(self):
         # noinspection PyBroadException
         while self.__alive:
-            self.__logger.info('Waiting for message from mediator.')
-            packet, _ = self.__socket.recvfrom(RECEIVING_BUFFER_SIZE)
-            header, message = self.__deserialize_data(packet)
+            try:
+                self.__logger.info('Waiting for message from mediator.')
+                packet, _ = self.__socket.recvfrom(RECEIVING_BUFFER_SIZE)
+                header, message = self.__deserialize_data(packet)
 
-            print header, message
+                if not header.HasField('deviceType') \
+                        or not header.HasField('deviceID') \
+                        or header.HasField('deviceType') == 0:
+                    self.__handle_message_from_mediator(header, message)
 
-            if not header.HasField('deviceType') \
-                    or not header.HasField('deviceID') \
-                    or header.HasField('deviceType') == 0:
-                self.__handle_message_from_mediator(header, message)
-
-            else:
-                key = (header.deviceType, header.deviceID)
-                client_proxy = self.__proxy_map[key] if key in self.__proxy_map else None
-                if client_proxy is not None:
-                    self.__handle_message_from_driver(header, message, client_proxy)
                 else:
-                    self.__logger.warn('Cannot find client proxy for device type %d and device ID %d' %
-                                       (header.deviceType, header.deviceID))
+                    key = (header.deviceType, header.deviceID)
+                    client_proxy = self.__proxy_map[key] if key in self.__proxy_map else None
+                    if client_proxy is not None:
+                        self.__handle_message_from_driver(header, message, client_proxy)
+                    else:
+                        self.__logger.warn('Cannot find client proxy for device type %d and device ID %d' %
+                                           (header.deviceType, header.deviceID))
+            except BaseException as exp:
+                print traceback.format_exc()
+                self.__logger.warn('Unknown error: %s' % str(exp))
 
     def __handle_message_from_mediator(self, header, message):
         msg_type = message.type

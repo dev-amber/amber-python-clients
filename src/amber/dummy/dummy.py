@@ -1,5 +1,6 @@
 from amber.common import amber_proxy, future_object
 from amber.common import drivermsg_pb2
+from amber.common.listener import Listener
 import dummy_pb2
 
 __author__ = 'paoolo'
@@ -7,15 +8,50 @@ __author__ = 'paoolo'
 DEVICE_TYPE = 5
 
 
+class DummyListener(Listener):
+    def handle(self, response):
+        print str(response)
+
+
 class DummyProxy(amber_proxy.AmberProxy):
     def __init__(self, amber_client, device_id):
         super(DummyProxy, self).__init__(DEVICE_TYPE, device_id, amber_client)
-        self.__amber_client, self.__syn_num, self.__future_objs = amber_client, 0, {}
+        self.__amber_client, self.__syn_num, self.__future_objs, self.__listener = amber_client, 0, {}, None
 
         print('Starting and registering DummyProxy.')
 
+    def subscribe(self, listener):
+        self.__listener = listener
+
+        driver_msg = self.__build_subscribe_action()
+        self.__amber_client.send_message(self.build_header(), driver_msg)
+
+    def __build_subscribe_action(self):
+        driver_msg = drivermsg_pb2.DriverMsg()
+
+        driver_msg.type = drivermsg_pb2.DriverMsg.SUBSCRIBE
+
+        return driver_msg
+
+    def unsubscribe(self):
+        driver_msg = self.__build_unsubscribe_action()
+        self.__amber_client.send_message(self.build_header(), driver_msg)
+
+    def __build_unsubscribe_action(self):
+        driver_msg = drivermsg_pb2.DriverMsg()
+
+        driver_msg.type = drivermsg_pb2.DriverMsg.UNSUBSCRIBE
+
+        return driver_msg
+
     def handle_data_msg(self, header, message):
         print('Handling data message')
+
+        if not message.HasField('ackNum') or message.ackNum == 0:
+            if message.HasExtension(dummy_pb2.message):
+                response = message.Extensions[dummy_pb2.message]
+                if self.__listener is not None:
+                    self.__listener.handle(response)
 
         if message.HasField('ackNum') and message.ackNum != 0:
             ack_num = message.ackNum

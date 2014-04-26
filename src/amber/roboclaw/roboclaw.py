@@ -4,7 +4,7 @@ import roboclaw_pb2
 
 __author__ = 'paoolo'
 
-DEVICE_TYPE = 3
+DEVICE_TYPE = 2
 
 
 class RoboclawProxy(amber_proxy.AmberProxy):
@@ -20,10 +20,10 @@ class RoboclawProxy(amber_proxy.AmberProxy):
         driver_msg = drivermsg_pb2.DriverMsg()
 
         driver_msg.type = drivermsg_pb2.DriverMsg.DATA
-        driver_msg.Extensions[roboclaw_pb2.motorsCommand].frontLeftSpeed = 0
-        driver_msg.Extensions[roboclaw_pb2.motorsCommand].frontRightSpeed = 0
-        driver_msg.Extensions[roboclaw_pb2.motorsCommand].rearLeftSpeed = 0
-        driver_msg.Extensions[roboclaw_pb2.motorsCommand].rearRightSpeed = 0
+        driver_msg.Extensions[roboclaw_pb2.motorsCommand].frontLeftSpeed = front_left
+        driver_msg.Extensions[roboclaw_pb2.motorsCommand].frontRightSpeed = front_right
+        driver_msg.Extensions[roboclaw_pb2.motorsCommand].rearLeftSpeed = rear_left
+        driver_msg.Extensions[roboclaw_pb2.motorsCommand].rearRightSpeed = rear_right
         driver_msg.synNum = self.__get_next_syn_num()
 
         self.__amber_client.send_message(self.build_header(), driver_msg)

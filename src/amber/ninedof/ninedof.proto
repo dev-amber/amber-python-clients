@@ -5,8 +5,8 @@ option java_outer_classname = "NinedofProto";
 import "drivermsg.proto";
 
 extend amber.DriverMsg {
-	optional SensorData sensorData = 10;	
-	optional DataRequest dataRequest = 11;	
+	optional SensorData sensorData = 10;
+	optional DataRequest dataRequest = 11;
 	optional SubscribeAction subscribeAction = 12;
 }
 

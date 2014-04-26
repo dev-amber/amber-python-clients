@@ -4,7 +4,7 @@ import ninedof_pb2
 
 __author__ = 'paoolo'
 
-DEVICE_TYPE = 2
+DEVICE_TYPE = 1
 
 
 class NinedofProxy(amber_proxy.AmberProxy):
