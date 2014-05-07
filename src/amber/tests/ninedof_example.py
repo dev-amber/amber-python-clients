@@ -1,7 +1,17 @@
+import time
+
 from amber.common import amber_client
+from amber.common.listener import Listener
 from amber.ninedof import ninedof
 
+
 __author__ = 'paoolo'
+
+
+class NinedofListener(Listener):
+    def handle(self, response):
+        print str(response)
+
 
 if __name__ == '__main__':
     ip = raw_input('IP (default: 127.0.0.1): ')
@@ -10,6 +20,8 @@ if __name__ == '__main__':
     proxy = ninedof.NinedofProxy(client, 0)
 
     print(proxy.get_axes_data(True, True, True))
-    # TODO: use listener
+    proxy.register_ninedof_data_listener(1, True, True, True, NinedofListener())
+
+    time.sleep(10)
 
     client.terminate()

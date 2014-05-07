@@ -1,10 +1,21 @@
+import sys
 from signal import *
 
 __author__ = 'paoolo'
 
-TRAP_SIGNALS = [SIGINT, SIGTERM]
+__trap_signals = (SIGINT, SIGTERM)
+__funcs = []
+
+
+def __shutdown_func(*args, **kwargs):
+    sys.stderr.write('runtime: signal trap\n')
+    for func in __funcs:
+        func()
+
+
+for sig in __trap_signals:
+    signal(sig, __shutdown_func)
 
 
 def add_shutdown_hook(func):
-    for sig in TRAP_SIGNALS:
-        signal(sig, func)
+    __funcs.append(func)

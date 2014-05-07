@@ -1,11 +1,17 @@
 import time
 
 from amber.common import amber_client
+from amber.common.listener import Listener
 from amber.dummy import dummy
-from amber.dummy.dummy import DummyListener
 
 
 __author__ = 'paoolo'
+
+
+class DummyListener(Listener):
+    def handle(self, response):
+        print str(response)
+
 
 if __name__ == '__main__':
     ip = raw_input('IP (default: 127.0.0.1): ')
@@ -22,7 +28,7 @@ if __name__ == '__main__':
 
     print(proxy.get_status())
 
-    time.sleep(6)
+    time.sleep(30)
 
     proxy.unsubscribe()
 

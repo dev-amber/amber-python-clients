@@ -1,10 +1,22 @@
+import logging
+import logging.config
+import os
+
 from amber.common import amber_proxy, future_object
 from amber.common import drivermsg_pb2
 import roboclaw_pb2
 
+
 __author__ = 'paoolo'
 
 DEVICE_TYPE = 2
+
+LOGGER_NAME = 'RoboclawProxy'
+pwd = os.path.dirname(os.path.abspath(__file__))
+try:
+    logging.config.fileConfig('%s/roboclaw.ini' % pwd)
+except BaseException:
+    print 'Logging not set.'
 
 
 class RoboclawProxy(amber_proxy.AmberProxy):
@@ -12,10 +24,13 @@ class RoboclawProxy(amber_proxy.AmberProxy):
         super(RoboclawProxy, self).__init__(DEVICE_TYPE, device_id, amber_client)
         self.__amber_client, self.__syn_num, self.__future_objs = amber_client, 0, {}
 
-        print('Starting and registering RoboclawProxy.')
+        self.__logger = logging.getLogger(LOGGER_NAME)
+        self.__logger.setLevel(logging.WARNING)
+
+        self.__logger.info('Starting and registering RoboclawProxy.')
 
     def send_motors_command(self, front_left, front_right, rear_left, rear_right):
-        print('Sending MotorsCommand: %d %d %d %d.' % (front_left, front_right, rear_left, rear_right))
+        self.__logger.debug('Sending MotorsCommand: %d %d %d %d.' % (front_left, front_right, rear_left, rear_right))
 
         driver_msg = drivermsg_pb2.DriverMsg()
 
@@ -29,7 +44,7 @@ class RoboclawProxy(amber_proxy.AmberProxy):
         self.__amber_client.send_message(self.build_header(), driver_msg)
 
     def get_current_motors_speed(self):
-        print('Getting current motors speed.')
+        self.__logger.debug('Getting current motors speed.')
 
         syn_num = self.__get_next_syn_num()
 
@@ -43,7 +58,7 @@ class RoboclawProxy(amber_proxy.AmberProxy):
         return motors_current_speed
 
     def handle_data_msg(self, header, message):
-        print('Handling data message.')
+        self.__logger.debug('Handling data message.')
 
         if message.HasField('ackNum') and message.ackNum != 0:
             ack_num = message.ackNum

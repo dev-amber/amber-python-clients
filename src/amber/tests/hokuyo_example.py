@@ -1,7 +1,17 @@
+import time
+
 from amber.common import amber_client
+from amber.common.listener import Listener
 from amber.hokuyo import hokuyo
 
+
 __author__ = 'paoolo'
+
+
+class HokuyoListener(Listener):
+    def handle(self, response):
+        print str(response.get_points())
+
 
 if __name__ == '__main__':
     ip = raw_input('IP (default: 127.0.0.1): ')
@@ -9,10 +19,12 @@ if __name__ == '__main__':
     client = amber_client.AmberClient(ip)
     proxy = hokuyo.HokuyoProxy(client, 0)
 
-    print(proxy.get_version_info())
-    print(proxy.get_sensor_state())
-    print(proxy.get_sensor_specs())
-    scan = proxy.get_single_scan()
-    print(scan.get_points())
+    for i in range(100):
+        scan = proxy.get_single_scan()
+        print(scan.get_points())
+
+    proxy.subscribe(HokuyoListener())
+
+    time.sleep(60)
 
     client.terminate()

@@ -1,10 +1,22 @@
+import logging
+import logging.config
+import os
+
 from amber.common import amber_proxy, future_object
 from amber.common import drivermsg_pb2
 import ninedof_pb2
 
+
 __author__ = 'paoolo'
 
 DEVICE_TYPE = 1
+
+LOGGER_NAME = 'NinedofProxy'
+pwd = os.path.dirname(os.path.abspath(__file__))
+try:
+    logging.config.fileConfig('%s/ninedof.ini' % pwd)
+except BaseException:
+    print 'Logging not set.'
 
 
 class NinedofProxy(amber_proxy.AmberProxy):
@@ -12,10 +24,13 @@ class NinedofProxy(amber_proxy.AmberProxy):
         super(NinedofProxy, self).__init__(DEVICE_TYPE, device_id, amber_client)
         self.__amber_client, self.__syn_num, self.__future_objs = amber_client, 0, {}
 
-        print('Starting and registering RoboclawProxy.')
+        self.__logger = logging.getLogger(LOGGER_NAME)
+        self.__logger.setLevel(logging.WARNING)
+
+        self.__logger.info('Starting and registering RoboclawProxy.')
 
     def register_ninedof_data_listener(self, freq, accel, gyro, magnet, listener):
-        print('Registering NinedofDataListener, freq: %d, a:%s, g:%s, m:%s.')
+        self.__logger.debug('Registering NinedofDataListener, freq: %d, a:%s, g:%s, m:%s.')
 
         driver_msg = self.__build_subscribe_action_msg(freq, accel, gyro, magnet)
         self.__ninedof_data_listener = listener
@@ -32,7 +47,7 @@ class NinedofProxy(amber_proxy.AmberProxy):
     def get_axes_data(self, accel, gyro, magnet):
         syn_num = self.__get_next_syn_num()
 
-        print('Pulling NinedofData, a:%s, g:%s, m:%s.' % (accel, gyro, magnet))
+        self.__logger.debug('Pulling NinedofData, a:%s, g:%s, m:%s.' % (accel, gyro, magnet))
 
         data_req_msg = self.__build_data_request_msg(syn_num, accel, gyro, magnet)
 
@@ -69,11 +84,11 @@ class NinedofProxy(amber_proxy.AmberProxy):
         sensor_data = message.Extensions[ninedof_pb2.sensorData]
 
         ninedof_data.set_accel(
-            AxesData(sensor_data.accel.x_axis, sensor_data.accel.y_axis, sensor_data.accel.z_axis))
+            AxesData(sensor_data.accel.xAxis, sensor_data.accel.yAxis, sensor_data.accel.zAxis))
         ninedof_data.set_gyro(
-            AxesData(sensor_data.gyro.x_axis, sensor_data.gyro.y_axis, sensor_data.gyro.z_axis))
+            AxesData(sensor_data.gyro.xAxis, sensor_data.gyro.yAxis, sensor_data.gyro.zAxis))
         ninedof_data.set_magnet(
-            AxesData(sensor_data.magnet.x_axis, sensor_data.magnet.y_axis, sensor_data.magnet.z_axis))
+            AxesData(sensor_data.magnet.xAxis, sensor_data.magnet.yAxis, sensor_data.magnet.zAxis))
 
     def __build_subscribe_action_msg(self, freq, accel, gyro, magnet):
         driver_msg = drivermsg_pb2.DriverMsg()
@@ -112,6 +127,8 @@ class NinedofData(future_object.FutureObject):
         self.__accel, self.__gyro, self.__magnet = None, None, None
 
     def __str__(self):
+        if not self.is_available():
+            self.wait_available()
         return "accel: %s\ngyro: %s\nmagnet: %s" % (self.__accel, self.__gyro, self.__magnet)
 
     def get_accel(self):

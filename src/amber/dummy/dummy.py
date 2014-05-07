@@ -1,16 +1,22 @@
+import logging
+import logging.config
+import os
+
 from amber.common import amber_proxy, future_object
 from amber.common import drivermsg_pb2
-from amber.common.listener import Listener
 import dummy_pb2
+
 
 __author__ = 'paoolo'
 
 DEVICE_TYPE = 5
 
-
-class DummyListener(Listener):
-    def handle(self, response):
-        print str(response)
+LOGGER_NAME = 'DummyProxy'
+pwd = os.path.dirname(os.path.abspath(__file__))
+try:
+    logging.config.fileConfig('%s/dummy.ini' % pwd)
+except BaseException:
+    print 'Logging not set.'
 
 
 class DummyProxy(amber_proxy.AmberProxy):
@@ -18,15 +24,25 @@ class DummyProxy(amber_proxy.AmberProxy):
         super(DummyProxy, self).__init__(DEVICE_TYPE, device_id, amber_client)
         self.__amber_client, self.__syn_num, self.__future_objs, self.__listener = amber_client, 0, {}, None
 
-        print('Starting and registering DummyProxy.')
+        self.__logger = logging.getLogger(LOGGER_NAME)
+        self.__logger.setLevel(logging.WARNING)
+
+        self.__logger.info('Starting and registering DummyProxy.')
 
     def subscribe(self, listener):
+        """
+        Subscribe for data provided by remote object.
+
+        :param listener:
+        :return:
+        """
         self.__listener = listener
 
         driver_msg = self.__build_subscribe_action()
         self.__amber_client.send_message(self.build_header(), driver_msg)
 
-    def __build_subscribe_action(self):
+    @staticmethod
+    def __build_subscribe_action():
         driver_msg = drivermsg_pb2.DriverMsg()
 
         driver_msg.type = drivermsg_pb2.DriverMsg.SUBSCRIBE
@@ -34,10 +50,16 @@ class DummyProxy(amber_proxy.AmberProxy):
         return driver_msg
 
     def unsubscribe(self):
+        """
+        Disable subscription.
+
+        :return:
+        """
         driver_msg = self.__build_unsubscribe_action()
         self.__amber_client.send_message(self.build_header(), driver_msg)
 
-    def __build_unsubscribe_action(self):
+    @staticmethod
+    def __build_unsubscribe_action():
         driver_msg = drivermsg_pb2.DriverMsg()
 
         driver_msg.type = drivermsg_pb2.DriverMsg.UNSUBSCRIBE
@@ -45,7 +67,15 @@ class DummyProxy(amber_proxy.AmberProxy):
         return driver_msg
 
     def handle_data_msg(self, header, message):
-        print('Handling data message')
+        """
+        Handle DATA message type. Must be implemented.
+        It services responses for requested operation and subscribed data.
+
+        :param header:
+        :param message:
+        :return:
+        """
+        self.__logger.debug('Handling data message')
 
         if not message.HasField('ackNum') or message.ackNum == 0:
             if message.HasExtension(dummy_pb2.message):
@@ -67,12 +97,19 @@ class DummyProxy(amber_proxy.AmberProxy):
         return self.__syn_num
 
     def set_enable(self, value):
-        print('Set enable to %s' % value)
+        """
+        Generate and send message which set enable flag on remote object.
+
+        :param value:
+        :return:
+        """
+        self.__logger.debug('Set enable to %s' % value)
 
         driver_msg = self.__build_set_enable_req_msg(value)
         self.__amber_client.send_message(self.build_header(), driver_msg)
 
-    def __build_set_enable_req_msg(self, value):
+    @staticmethod
+    def __build_set_enable_req_msg(value):
         driver_msg = drivermsg_pb2.DriverMsg()
 
         driver_msg.type = drivermsg_pb2.DriverMsg.DATA
@@ -81,12 +118,19 @@ class DummyProxy(amber_proxy.AmberProxy):
         return driver_msg
 
     def set_message(self, message):
-        print('Set message to %s' % message)
+        """
+        Generate and send message which set message on remote object.
+
+        :param message:
+        :return:
+        """
+        self.__logger.debug('Set message to %s' % message)
 
         driver_msg = self.__build_set_message_req_msg(message)
         self.__amber_client.send_message(self.build_header(), driver_msg)
 
-    def __build_set_message_req_msg(self, message):
+    @staticmethod
+    def __build_set_message_req_msg(message):
         driver_msg = drivermsg_pb2.DriverMsg()
 
         driver_msg.type = drivermsg_pb2.DriverMsg.DATA
@@ -95,7 +139,14 @@ class DummyProxy(amber_proxy.AmberProxy):
         return driver_msg
 
     def get_status(self):
-        print('Get status')
+        """
+        Generate and send message which request to get enable flag and message value.
+        Return a future object bound with send request.
+        Response will be serviced in handle_data_msg.
+
+        :return:
+        """
+        self.__logger.debug('Get status')
 
         syn_num = self.__get_next_syn_num()
 
@@ -108,7 +159,8 @@ class DummyProxy(amber_proxy.AmberProxy):
 
         return status
 
-    def __build_get_status_req_msg(self, syn_num):
+    @staticmethod
+    def __build_get_status_req_msg(syn_num):
         driver_msg = drivermsg_pb2.DriverMsg()
 
         driver_msg.type = drivermsg_pb2.DriverMsg.DATA
@@ -117,7 +169,8 @@ class DummyProxy(amber_proxy.AmberProxy):
 
         return driver_msg
 
-    def __fill_status(self, status, message):
+    @staticmethod
+    def __fill_status(status, message):
         status.set_enable(message.Extensions[dummy_pb2.enable])
         status.set_message(message.Extensions[dummy_pb2.message])
         status.set_available()

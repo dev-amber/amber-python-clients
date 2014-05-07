@@ -4,6 +4,7 @@
 try:
     from setuptools import setup
 except ImportError:
+    print 'No setuptools installed, use distutils'
     from distutils.core import setup
 
 with open('requirements.txt') as f:
@@ -19,8 +20,23 @@ setup(
                  'amber.ninedof': 'src/amber/ninedof',
                  'amber.roboclaw': 'src/amber/roboclaw',
                  'amber.tests': 'src/amber/tests'},
+    package_data={'': ['src/amber/common/amber.ini',
+                       'src/amber/dummy/dummy.ini',
+                       'src/amber/hokuyo/hokuyo.ini',
+                       'src/amber/ninedof/ninedof.ini',
+                       'src/amber/roboclaw/roboclaw.ini']},
+    data_files=[
+        ('', [
+            'src/amber/common/amber.ini',
+            'src/amber/dummy/dummy.ini',
+            'src/amber/hokuyo/hokuyo.ini',
+            'src/amber/ninedof/ninedof.ini',
+            'src/amber/roboclaw/roboclaw.ini',
+        ]),
+    ],
+    include_package_data=True,
     install_requires=required,
-    version='0.4',
+    version='0.5',
     description='Amber clients in python',
     author=u'Paweł Suder',
     author_email='pawel@suder.info',

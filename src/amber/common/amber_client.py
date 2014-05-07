@@ -1,8 +1,9 @@
 import logging
+import logging.config
+import os
 import socket
 import struct
 import threading
-import traceback
 
 from amber.common import runtime
 import drivermsg_pb2
@@ -10,7 +11,13 @@ import drivermsg_pb2
 
 __author__ = 'paoolo'
 
-LOGGER_NAME = 'Amber.Client'
+LOGGER_NAME = 'AmberClient'
+pwd = os.path.dirname(os.path.abspath(__file__))
+try:
+    logging.config.fileConfig('%s/amber.ini' % pwd)
+except BaseException:
+    print 'Logging not set.'
+
 RECEIVING_BUFFER_SIZE = 16384
 DEFAULT_PORT = 26233
 
@@ -25,7 +32,6 @@ class AmberClient(object):
         Instantiates AmberClient object.
         """
         self.__logger = logging.Logger(LOGGER_NAME)
-        self.__logger.addHandler(logging.StreamHandler())
 
         self.__terminated, self.__proxy_map = False, {}
         self.__socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -52,7 +58,7 @@ class AmberClient(object):
         """
         Sends message to the robot.
         """
-        self.__logger.info("Sending message for (%d: %d):\nheader=%s.\nmessage=%s." %
+        self.__logger.debug("Sending message for (%d: %d):\nheader=%s.\nmessage=%s." %
                            (header.deviceType, header.deviceID, str(header), str(message)))
 
         data_header = self.__serialize_data(header)
@@ -109,7 +115,7 @@ class AmberClient(object):
         # noinspection PyBroadException
         while self.__alive:
             try:
-                self.__logger.info('Waiting for message from mediator.')
+                self.__logger.debug('Waiting for message from mediator.')
                 packet, _ = self.__socket.recvfrom(RECEIVING_BUFFER_SIZE)
                 header, message = self.__deserialize_data(packet)
 
@@ -126,43 +132,42 @@ class AmberClient(object):
                     else:
                         self.__logger.warn('Cannot find client proxy for device type %d and device ID %d' %
                                            (header.deviceType, header.deviceID))
-            except BaseException as exp:
-                print traceback.format_exc()
-                self.__logger.warn('Unknown error: %s' % str(exp))
+            except BaseException as e:
+                self.__logger.warn('Unknown error: %s' % str(e))
 
     def __handle_message_from_mediator(self, header, message):
         msg_type = message.type
         if msg_type == drivermsg_pb2.DriverMsg.DATA:
-            self.__logger.info('DATA message came, but device details not set, ignoring.')
+            self.__logger.debug('DATA message came, but device details not set, ignoring.')
 
         elif msg_type == drivermsg_pb2.DriverMsg.PING:
-            self.__logger.info('PING message came, handling.')
+            self.__logger.debug('PING message came, handling.')
             self.__handle_ping_message(header, message)
 
         elif msg_type == drivermsg_pb2.DriverMsg.PONG:
-            self.__logger.info('PONG message came, handling.')
+            self.__logger.debug('PONG message came, handling.')
             self.__handle_pong_message(header, message)
 
         elif msg_type == drivermsg_pb2.DriverMsg.DRIVER_DIED:
             self.__logger.info('DRIVER_DIED message came, but device details not set, ignoring.')
 
         else:
-            self.__logger.info('Unexpected message came: %s, ignoring.' % str(msg_type))
+            self.__logger.warn('Unexpected message came: %s, ignoring.' % str(msg_type))
 
     def __handle_message_from_driver(self, header, message, client_proxy):
         msg_type = message.type
         if msg_type == drivermsg_pb2.DriverMsg.DATA:
-            self.__logger.info('DATA message came for device type %d and device ID %d' %
+            self.__logger.debug('DATA message came for device type %d and device ID %d' %
                                (client_proxy.deviceType, client_proxy.deviceID))
             client_proxy.handle_data_msg(header, message)
 
         elif msg_type == drivermsg_pb2.DriverMsg.PING:
-            self.__logger.info('PING message came for device type %d and device ID %d' %
+            self.__logger.debug('PING message came for device type %d and device ID %d' %
                                (client_proxy.deviceType, client_proxy.deviceID))
             client_proxy.handle_ping_message(header, message)
 
         elif msg_type == drivermsg_pb2.DriverMsg.PONG:
-            self.__logger.info('PONG message came for device type %d and device ID %d' %
+            self.__logger.debug('PONG message came for device type %d and device ID %d' %
                                (client_proxy.deviceType, client_proxy.deviceID))
             client_proxy.handle_pong_message(header, message)
 
@@ -172,7 +177,7 @@ class AmberClient(object):
             client_proxy.handle_driver_died_message(header, message)
 
         else:
-            self.__logger.info('Unexpected message came %s for (%d: %d), ignoring.' %
+            self.__logger.warn('Unexpected message came %s for (%d: %d), ignoring.' %
                                (str(msg_type), client_proxy.deviceType, client_proxy.deviceID))
 
     def __handle_ping_message(self, header, message):
