@@ -1,20 +1,19 @@
 amber-python-clients
 ====================
 
-[![Build Status](https://travis-ci.org/dev-amber/amber-python-clients.svg?branch=master)](https://travis-ci.org/dev-amber/amber-python-clients)
+[![Build Status](https://travis-ci.org/project-capo/amber-python-clients.svg)](https://travis-ci.org/project-capo/amber-python-clients)
 
 Requirements
 ------------
 
-* `python` with `pip`
-* `protoc` from `protobuf-compiler`
+* `python` with `pip` and `virtualenv`
+* `protobuf` and `protoc` from `protobuf-compiler`
 
 How to deploy
 -------------
 
 * Clone this project.
-* `pip install -r requirements.txt` inside project.
-* `./protoc.sh; ./repair.sh` inside project.
+* Create python virtual environment using `bin/install.sh`
 * Import project to your favorite IDE.
 
 How to use (PyPi)
@@ -30,12 +29,12 @@ You can install it by python-installer
 
 Package available at https://pypi.python.org/pypi/amber-python-clients
 
+Examples
+--------
+
+You can find it [here](src/amber/tests).
+
 How to contribute
 -----------------
 
-Clone this repo, setup your environment (optional using `virtualenv`), by `pip install -r requirements.txt`. Next, change what you want and make pull request.
-
-Support
--------
-
-If you have any trouble, create ticket.
+Clone this repo, setup your environment using `bin/install.sh`. Change what you want to change and make pull request.

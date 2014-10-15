@@ -40,8 +40,8 @@ setup(
     description='Amber clients in python',
     author=u'Paweł Suder',
     author_email='pawel@suder.info',
-    url='http://dev.suder.info/',
-    download_url='http://github.com/dev-amber/amber-python-clients/',
+    url='http://project-capo.github.io/',
+    download_url='http://github.com/project-capo/amber-python-clients/',
     keywords=['amber', 'hokuyo', 'roboclaw', 'ninedof', 'panda'],
     classifiers=[
         'Programming Language :: Python',
