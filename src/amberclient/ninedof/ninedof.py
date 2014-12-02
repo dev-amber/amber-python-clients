@@ -1,9 +1,10 @@
 import logging
 import logging.config
+
 import os
 
-from amber.common import amber_proxy, future_object
-from amber.common import drivermsg_pb2
+from amberclient.common import amber_proxy, future_object
+from amberclient.common import drivermsg_pb2
 import ninedof_pb2
 
 
@@ -127,8 +128,6 @@ class NinedofData(future_object.FutureObject):
         self.__accel, self.__gyro, self.__magnet = None, None, None
 
     def __str__(self):
-        if not self.is_available():
-            self.wait_available()
         return "accel: %s\ngyro: %s\nmagnet: %s" % (self.__accel, self.__gyro, self.__magnet)
 
     def get_accel(self):

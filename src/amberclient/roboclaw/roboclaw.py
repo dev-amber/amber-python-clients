@@ -1,9 +1,10 @@
 import logging
 import logging.config
+
 import os
 
-from amber.common import amber_proxy, future_object
-from amber.common import drivermsg_pb2
+from amberclient.common import amber_proxy, future_object
+from amberclient.common import drivermsg_pb2
 import roboclaw_pb2
 
 

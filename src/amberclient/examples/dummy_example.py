@@ -1,8 +1,8 @@
 import time
 
-from amber.common import amber_client
-from amber.common.listener import Listener
-from amber.dummy import dummy
+from amberclient.common import amber_client
+from amberclient.common.listener import Listener
+from amberclient.dummy import dummy
 
 
 __author__ = 'paoolo'

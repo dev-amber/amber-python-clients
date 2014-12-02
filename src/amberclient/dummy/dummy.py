@@ -1,9 +1,10 @@
 import logging
 import logging.config
+
 import os
 
-from amber.common import amber_proxy, future_object
-from amber.common import drivermsg_pb2
+from amberclient.common import amber_proxy, future_object
+from amberclient.common import drivermsg_pb2
 import dummy_pb2
 
 
@@ -182,8 +183,6 @@ class Status(future_object.FutureObject):
         self.__message, self.__enable = None, None
 
     def __str__(self):
-        if not self.is_available():
-            self.wait_available()
         return "message: %s, enable: %s" % (self.__message, str(self.__enable))
 
     def set_message(self, message):

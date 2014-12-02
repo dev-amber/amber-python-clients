@@ -1,8 +1,8 @@
 import time
 
-from amber.common import amber_client
-from amber.common.listener import Listener
-from amber.hokuyo import hokuyo
+from amberclient.common import amber_client
+from amberclient.common.listener import Listener
+from amberclient.hokuyo import hokuyo
 
 
 __author__ = 'paoolo'

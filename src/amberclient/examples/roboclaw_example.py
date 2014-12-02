@@ -1,7 +1,7 @@
 import time
 
-from amber.common import amber_client
-from amber.roboclaw import roboclaw
+from amberclient.common import amber_client
+from amberclient.roboclaw import roboclaw
 
 __author__ = 'paoolo'
 

@@ -1,11 +1,12 @@
 import logging
 import logging.config
-import os
 import socket
 import struct
 import threading
 
-from amber.common import runtime
+import os
+
+from amberclient.common import runtime
 import drivermsg_pb2
 
 
@@ -45,7 +46,7 @@ class AmberClient(object):
 
     def register_client(self, device_type, device_id, proxy):
         """
-        Registers AmberProxy in client.
+        Registers AmberProxy in amberclient.
         """
         self.__proxy_map[(device_type, device_id)] = proxy
 
@@ -69,10 +70,10 @@ class AmberClient(object):
 
     def terminate(self, *args, **kwargs):
         """
-        Terminates client.
+        Terminates amberclient.
         """
         if not self.__terminated:
-            self.__logger.info("Terminate client.")
+            self.__logger.info("Terminate amberclient.")
 
             self.__terminated = True
             self.terminate_proxies()
@@ -130,7 +131,7 @@ class AmberClient(object):
                     if client_proxy is not None:
                         self.__handle_message_from_driver(header, message, client_proxy)
                     else:
-                        self.__logger.warn('Cannot find client proxy for device type %d and device ID %d' %
+                        self.__logger.warn('Cannot find amberclient proxy for device type %d and device ID %d' %
                                            (header.deviceType, header.deviceID))
             except BaseException as e:
                 self.__logger.warn('Unknown error: %s' % str(e))

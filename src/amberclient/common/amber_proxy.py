@@ -1,5 +1,6 @@
-import abc
 import logging
+
+import abc
 
 import drivermsg_pb2
 
@@ -58,7 +59,7 @@ class AmberProxy(object):
 
     def terminate_proxy(self):
         """
-        Sends "client died" message and terminates the proxy.
+        Sends "amberclient died" message and terminates the proxy.
         """
         self.__logger.info("Terminating proxy.")
 

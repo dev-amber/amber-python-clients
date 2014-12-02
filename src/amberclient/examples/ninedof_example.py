@@ -1,8 +1,8 @@
 import time
 
-from amber.common import amber_client
-from amber.common.listener import Listener
-from amber.ninedof import ninedof
+from amberclient.common import amber_client
+from amberclient.common.listener import Listener
+from amberclient.ninedof import ninedof
 
 
 __author__ = 'paoolo'
