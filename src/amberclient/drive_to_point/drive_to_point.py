@@ -3,8 +3,8 @@ import logging.config
 
 import os
 
-from amber.common import amber_proxy, future_object
-from amber.common import drivermsg_pb2
+from amberclient.common import amber_proxy, future_object
+from amberclient.common import drivermsg_pb2
 import drive_to_point_pb2
 
 
@@ -40,6 +40,21 @@ class DriveToPointProxy(amber_proxy.AmberProxy):
         :return:
         """
         self.__logger.debug('Handling data message')
+
+        if message.HasField('ackNum') and message.ackNum != 0:
+            ack_num = message.ackNum
+            if ack_num in self.__future_objs:
+                obj = self.__future_objs[ack_num]
+                del self.__future_objs[ack_num]
+
+                if isinstance(obj, Result):
+                    if message.Extensions[drive_to_point_pb2.getNextTarget] or \
+                            message.Extensions[drive_to_point_pb2.getVisitedTarget]:
+                        self.__fill_target(obj, message)
+
+                    elif message.Extensions[drive_to_point_pb2.getNextTargets] or \
+                            message.Extensions[drive_to_point_pb2.getVisitedTargets]:
+                        self.__fill_targets(obj, message)
 
     def __get_next_syn_num(self):
         self.__syn_num += 1
@@ -160,7 +175,7 @@ class DriveToPointProxy(amber_proxy.AmberProxy):
         _targets = message.Extensions[drive_to_point_pb2.targets]
         _targets = zip(_targets.longitudes, _targets.latitudes, _targets.radiuses)
         _target = _targets[0] if len(_targets) > 0 else None
-        _target = Target(*_target) if not _target is None else None
+        _target = Point(*_target) if not _target is None else None
         result.set_result(_target)
         result.set_available()
 
@@ -168,14 +183,17 @@ class DriveToPointProxy(amber_proxy.AmberProxy):
     def __fill_targets(result, message):
         _targets = message.Extensions[drive_to_point_pb2.targets]
         _targets = zip(_targets.longitudes, _targets.latitudes, _targets.radiuses)
-        _targets = map(lambda target: Target(*target), _targets)
+        _targets = map(lambda target: Point(*target), _targets)
         result.set_result(_targets)
         result.set_available()
 
 
-class Target(object):
+class Point(object):
     def __init__(self, x, y, r):
         self.x, self.y, self.r = x, y, r
+
+    def __str__(self):
+        return 'target: %f, %f, %f' % (self.x, self.y, self.r)
 
 
 class Result(future_object.FutureObject):

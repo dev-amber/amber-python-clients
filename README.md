@@ -32,7 +32,7 @@ Package available at https://pypi.python.org/pypi/amber-python-clients
 Examples
 --------
 
-You can find it [here](src/amber/tests).
+You can find it [here](src/amberclient/examples).
 
 How to contribute
 -----------------
