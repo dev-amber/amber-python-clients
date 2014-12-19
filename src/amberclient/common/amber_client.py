@@ -3,6 +3,7 @@ import logging.config
 import socket
 import struct
 import threading
+import traceback
 
 import os
 
@@ -134,6 +135,7 @@ class AmberClient(object):
                         self.__logger.warn('Cannot find amberclient proxy for device type %d and device ID %d' %
                                            (header.deviceType, header.deviceID))
             except BaseException as e:
+                traceback.print_exc()
                 self.__logger.warn('Unknown error: %s' % str(e))
 
     def __handle_message_from_mediator(self, header, message):

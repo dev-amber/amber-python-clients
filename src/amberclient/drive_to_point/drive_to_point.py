@@ -203,7 +203,7 @@ class DriveToPointProxy(amber_proxy.AmberProxy):
         _target = _targets[0] if len(_targets) > 0 else None
         _target = Point(*_target) if not _target is None else None
         _location = message.Extensions[drive_to_point_pb2.location]
-        _location = Location(_location.x, _location.y, _location.p, _location.alfa, _location.timestamp)
+        _location = Location(_location.x, _location.y, _location.p, _location.alfa, _location.timeStamp)
         result.set_result(_target)
         result.set_location(_location)
         result.set_available()
@@ -214,7 +214,7 @@ class DriveToPointProxy(amber_proxy.AmberProxy):
         _targets = zip(_targets.longitudes, _targets.latitudes, _targets.radiuses)
         _targets = map(lambda target: Point(*target), _targets)
         _location = message.Extensions[drive_to_point_pb2.location]
-        _location = Location(_location.x, _location.y, _location.p, _location.alfa, _location.timestamp)
+        _location = Location(_location.x, _location.y, _location.p, _location.alfa, _location.timeStamp)
         result.set_result(_targets)
         result.set_location(_location)
         result.set_available()
@@ -242,11 +242,11 @@ class Point(object):
 
 
 class Location(object):
-    def __init__(self, x, y, p, alfa, timestamp):
-        self.x, self.y, self.p, self.alfa, self.timestamp = x, y, p, alfa, timestamp
+    def __init__(self, x, y, p, alfa, timeStamp):
+        self.x, self.y, self.p, self.alfa, self.timeStamp = x, y, p, alfa, timeStamp
 
     def _to_str(self):
-        return 'location: %f, %f, %f, %f, %f' % (self.x, self.y, self.p, self.alfa, self.timestamp)
+        return 'location: %f, %f, %f, %f, %f' % (self.x, self.y, self.p, self.alfa, self.timeStamp)
 
     def __str__(self):
         return self._to_str()
