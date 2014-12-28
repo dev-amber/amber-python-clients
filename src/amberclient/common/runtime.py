@@ -7,10 +7,14 @@ __trap_signals = (SIGINT, SIGTERM)
 __funcs = []
 
 
+# noinspection PyBroadException
 def __shutdown_func(*args, **kwargs):
     sys.stderr.write('runtime: signal trap\n')
     for func in __funcs:
-        func()
+        try:
+            func()
+        except:
+            pass
 
 
 for sig in __trap_signals:

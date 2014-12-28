@@ -79,7 +79,7 @@ class LocationProxy(amber_proxy.AmberProxy):
         alfa = current_location.alfa
         timestamp = current_location.timeStamp
 
-        location.set_location(x, y, alfa, p, timestamp)
+        location.set_location(x, y, p, alfa, timestamp)
         location.set_available()
 
 

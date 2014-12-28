@@ -96,6 +96,15 @@ class HokuyoProxy(amber_proxy.AmberProxy):
 
         return scan
 
+    def enable_scanning(self, enable=True):
+        self.__logger.debug('Enable scanning, set to %s' % str(enable))
+
+        syn_num = self.__get_next_syn_num()
+
+        driver_msg = self.__build_enable_scanning_req_msg(syn_num, enable)
+
+        self.__amber_client.send_message(self.build_header(), driver_msg)
+
     def __build_get_single_scan_req_msg(self, syn_num):
         driver_msg = drivermsg_pb2.DriverMsg()
 
@@ -105,10 +114,20 @@ class HokuyoProxy(amber_proxy.AmberProxy):
 
         return driver_msg
 
+    def __build_enable_scanning_req_msg(self, syn_num, enable_scanning):
+        driver_msg = drivermsg_pb2.DriverMsg()
+
+        driver_msg.type = drivermsg_pb2.DriverMsg.DATA
+        driver_msg.Extensions[hokuyo_pb2.enable_scanning] = enable_scanning
+        driver_msg.synNum = syn_num
+
+        return driver_msg
+
     def __fill_scan(self, scan, message):
         _scan = message.Extensions[hokuyo_pb2.scan]
+        _timestamp = message.Extensions[hokuyo_pb2.timestamp]
 
-        scan.set_points(_scan.angles, _scan.distances)
+        scan.set_values(_scan.angles, _scan.distances, _timestamp)
 
         scan.set_available()
 
@@ -116,12 +135,18 @@ class HokuyoProxy(amber_proxy.AmberProxy):
 class Scan(future_object.FutureObject):
     def __init__(self):
         super(Scan, self).__init__()
-        self.__points = None
+        self.__points, self.__timestamp = None, None
 
-    def set_points(self, angles, distances):
+    def set_values(self, angles, distances, timestamp):
         self.__points = zip(angles, distances)
+        self.__timestamp = timestamp
 
     def get_points(self):
         if not self.is_available():
             self.wait_available()
         return self.__points
+
+    def get_timestamp(self):
+        if not self.is_available():
+            self.wait_available()
+        return self.__timestamp

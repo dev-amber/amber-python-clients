@@ -10,7 +10,7 @@ __author__ = 'paoolo'
 
 class HokuyoListener(Listener):
     def handle(self, response):
-        print str(response.get_points())
+        print '%f: %s, %s...' % (time.time(), str(scan.get_timestamp()), str(response.get_points())[:50])
 
 
 if __name__ == '__main__':
@@ -19,12 +19,18 @@ if __name__ == '__main__':
     client = amber_client.AmberClient(ip)
     proxy = hokuyo.HokuyoProxy(client, 0)
 
-    for i in range(100):
+    proxy.enable_scanning(True)
+
+    time.sleep(10)
+
+    for i in range(10):
         scan = proxy.get_single_scan()
-        print(scan.get_points())
+        print '%f: %s, %s...' % (time.time(), str(scan.get_timestamp()), str(scan.get_points())[:50])
 
     proxy.subscribe(HokuyoListener())
 
-    time.sleep(60)
+    time.sleep(10)
+
+    proxy.enable_scanning(False)
 
     client.terminate()
