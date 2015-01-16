@@ -1,3 +1,4 @@
+import sys
 import time
 
 from amberclient.common import amber_client
@@ -19,19 +20,24 @@ if __name__ == '__main__':
     client = amber_client.AmberClient(ip)
     proxy = dummy.DummyProxy(client, 0)
 
-    proxy.subscribe(DummyListener())
-
-    print(proxy.get_status())
+    status = proxy.get_status()
+    status.wait_available()
+    print(status)
 
     proxy.set_enable(True)
     proxy.set_message('Hello')
 
-    print(proxy.get_status())
+    status = proxy.get_status()
+    status.wait_available()
+    print(status)
 
-    time.sleep(30)
+    time.sleep(1)
+
+    proxy.subscribe(DummyListener())
+
+    time.sleep(1)
 
     proxy.unsubscribe()
-
-    time.sleep(3)
-
     client.terminate()
+
+    sys.stderr.write('bye\n')

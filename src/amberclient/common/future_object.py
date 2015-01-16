@@ -2,7 +2,7 @@ import threading
 
 __author__ = 'paoolo'
 
-TIMEOUT = 60
+TIMEOUT = 1.0
 
 
 class FutureObject(object):
@@ -27,7 +27,7 @@ class FutureObject(object):
         Blocks until data is available.
         """
         self.__cond.acquire()
-        while not self.__available:
+        if not self.__available:
             self.__cond.wait(TIMEOUT)
         self.__cond.release()
 

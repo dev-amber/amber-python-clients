@@ -25,7 +25,7 @@ class AmberProxy(object):
         self.__logger = logging.Logger(LOGGER_NAME)
         self.__logger.addHandler(logging.StreamHandler())
 
-        amber_client.register_client(device_type, device_id, self)
+        amber_client.register_proxy(device_type, device_id, self)
 
     @abc.abstractmethod
     def handle_data_msg(self, header, message):

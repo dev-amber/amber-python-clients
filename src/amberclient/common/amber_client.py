@@ -1,10 +1,10 @@
+from _socket import timeout
 import logging
 import logging.config
-import socket
 import struct
 import threading
 import traceback
-import select
+import socket
 
 import os
 
@@ -36,8 +36,12 @@ class AmberClient(object):
         """
         self.__logger = logging.Logger(LOGGER_NAME)
 
-        self.__terminated, self.__proxy_map = False, {}
+        self.__proxy = None
         self.__socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+        self.__socket.setblocking(False)
+        self.__socket.settimeout(0.5)
+
         self.__hostname, self.__port = hostname, port
 
         self.__alive = True
@@ -47,11 +51,11 @@ class AmberClient(object):
 
         runtime.add_shutdown_hook(self.terminate)
 
-    def register_client(self, device_type, device_id, proxy):
+    def register_proxy(self, device_type, device_id, proxy):
         """
         Registers AmberProxy in amberclient.
         """
-        self.__proxy_map[(device_type, device_id)] = proxy
+        self.__proxy = proxy
 
     @staticmethod
     def __serialize_data(data):
@@ -76,26 +80,18 @@ class AmberClient(object):
         """
         Terminates amberclient.
         """
-        if not self.__terminated:
-            self.__logger.info("Terminate amberclient.")
+        self.__logger.info("Terminate amberclient.")
 
-            self.__terminated = True
-            self.terminate_proxies()
+        self.terminate_proxies()
 
-            self.__alive = False
-            try:
-                self.__socket.shutdown(socket.SHUT_RDWR)
-            except socket.error:
-                # .. silent pass ..
-                pass
-            self.__socket.close()
+        self.__alive = False
+        self.__socket.close()
 
     def terminate_proxies(self):
         """
         Terminates all registered proxies.
         """
-        for proxy in self.__proxy_map.itervalues():
-            proxy.terminate_proxy()
+        self.__proxy.terminate_proxy()
 
     @staticmethod
     def __deserialize_data(packet):
@@ -120,29 +116,28 @@ class AmberClient(object):
         # noinspection PyBroadException
         while self.__alive:
             try:
-                self.__logger.debug('Waiting for message from mediator.')
-                r, _, _ = select.select([self.__socket], [], [])
-                if r:
-                    packet, _ = self.__socket.recvfrom(RECEIVING_BUFFER_SIZE)
-                    header, message = AmberClient.__deserialize_data(packet)
+                packet = self.__socket.recv(RECEIVING_BUFFER_SIZE)
+                header, message = AmberClient.__deserialize_data(packet)
 
+                try:
                     if not header.HasField('deviceType') \
                             or not header.HasField('deviceID') \
                             or header.HasField('deviceType') == 0:
                         self.__handle_message_from_mediator(header, message)
 
                     else:
-                        key = (header.deviceType, header.deviceID)
-                        client_proxy = self.__proxy_map[key] if key in self.__proxy_map else None
-                        if client_proxy is not None:
-                            self.__handle_message_from_driver(header, message, client_proxy)
+                        if self.__proxy is not None:
+                            self.__handle_message_from_driver(header, message, self.__proxy)
                         else:
                             self.__logger.warn('Cannot find amberclient proxy for device type %d and device ID %d' %
                                                (header.deviceType, header.deviceID))
 
-            except Exception as e:
-                traceback.print_exc()
-                self.__logger.warn('Unknown error: %s' % str(e))
+                except Exception as e:
+                    traceback.print_exc()
+                    self.__logger.warn('Unknown error: %s' % str(e))
+
+            except timeout:
+                pass
 
     def __handle_message_from_mediator(self, header, message):
         msg_type = message.type
