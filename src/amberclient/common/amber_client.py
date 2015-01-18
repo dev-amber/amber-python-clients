@@ -16,10 +16,7 @@ __author__ = 'paoolo'
 
 LOGGER_NAME = 'AmberClient'
 pwd = os.path.dirname(os.path.abspath(__file__))
-try:
-    logging.config.fileConfig('%s/amber.ini' % pwd)
-except BaseException:
-    print 'Logging not set.'
+logging.config.fileConfig('%s/amber.ini' % pwd)
 
 RECEIVING_BUFFER_SIZE = 16384
 DEFAULT_PORT = 26233
@@ -34,7 +31,7 @@ class AmberClient(object):
         """
         Instantiates AmberClient object.
         """
-        self.__logger = logging.Logger(LOGGER_NAME)
+        self.__logger = logging.getLogger(LOGGER_NAME)
 
         self.__proxy = None
         self.__socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -67,8 +64,7 @@ class AmberClient(object):
         """
         Sends message to the robot.
         """
-        self.__logger.debug("Sending message for (%d: %d):\nheader=%s.\nmessage=%s." %
-                            (header.deviceType, header.deviceID, str(header), str(message)))
+        self.__logger.debug("Sending message for (%d: %d)" % (header.deviceType, header.deviceID))
 
         data_header = AmberClient.__serialize_data(header)
         data_message = AmberClient.__serialize_data(message)

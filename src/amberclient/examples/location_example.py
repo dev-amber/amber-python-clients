@@ -11,3 +11,5 @@ if __name__ == '__main__':
 
     _location = proxy.get_location()
     print _location.get_location()
+
+    client.terminate()

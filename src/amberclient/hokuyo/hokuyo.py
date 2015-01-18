@@ -14,10 +14,7 @@ DEVICE_TYPE = 4
 
 LOGGER_NAME = 'HokuyoProxy'
 pwd = os.path.dirname(os.path.abspath(__file__))
-try:
-    logging.config.fileConfig('%s/hokuyo.ini' % pwd)
-except BaseException:
-    print 'Logging not set.'
+logging.config.fileConfig('%s/hokuyo.ini' % pwd)
 
 
 class HokuyoProxy(amber_proxy.AmberProxy):
@@ -26,7 +23,6 @@ class HokuyoProxy(amber_proxy.AmberProxy):
         self.__amber_client, self.__syn_num, self.__future_objs, self.__listeners = amber_client, 0, {}, []
 
         self.__logger = logging.getLogger(LOGGER_NAME)
-        self.__logger.setLevel(logging.WARNING)
 
         self.__logger.info('Starting and registering HokuyoProxy.')
 

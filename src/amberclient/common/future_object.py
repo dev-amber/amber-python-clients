@@ -22,13 +22,13 @@ class FutureObject(object):
             raise self.__exception
         return self.__available
 
-    def wait_available(self):
+    def wait_available(self, timeout=TIMEOUT):
         """
         Blocks until data is available.
         """
         self.__cond.acquire()
         if not self.__available:
-            self.__cond.wait(TIMEOUT)
+            self.__cond.wait(timeout)
         self.__cond.release()
 
     def set_available(self):

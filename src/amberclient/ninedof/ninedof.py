@@ -14,10 +14,7 @@ DEVICE_TYPE = 1
 
 LOGGER_NAME = 'NinedofProxy'
 pwd = os.path.dirname(os.path.abspath(__file__))
-try:
-    logging.config.fileConfig('%s/ninedof.ini' % pwd)
-except BaseException:
-    print 'Logging not set.'
+logging.config.fileConfig('%s/ninedof.ini' % pwd)
 
 
 class NinedofProxy(amber_proxy.AmberProxy):
@@ -26,7 +23,6 @@ class NinedofProxy(amber_proxy.AmberProxy):
         self.__amber_client, self.__syn_num, self.__future_objs = amber_client, 0, {}
 
         self.__logger = logging.getLogger(LOGGER_NAME)
-        self.__logger.setLevel(logging.WARNING)
 
         self.__logger.info('Starting and registering RoboclawProxy.')
 

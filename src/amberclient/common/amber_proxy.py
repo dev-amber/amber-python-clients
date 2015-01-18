@@ -1,13 +1,17 @@
 import logging
+import logging.config
 
 import abc
+import os
 
 import drivermsg_pb2
 
 
 __author__ = 'paoolo'
 
-LOGGER_NAME = 'Amber.Proxy'
+LOGGER_NAME = 'AmberClient'
+pwd = os.path.dirname(os.path.abspath(__file__))
+logging.config.fileConfig('%s/amber.ini' % pwd)
 
 
 class AmberProxy(object):
@@ -22,8 +26,7 @@ class AmberProxy(object):
         self.deviceType, self.deviceID = device_type, device_id
         self.__amber_client = amber_client
 
-        self.__logger = logging.Logger(LOGGER_NAME)
-        self.__logger.addHandler(logging.StreamHandler())
+        self.__logger = logging.getLogger(LOGGER_NAME)
 
         amber_client.register_proxy(device_type, device_id, self)
 

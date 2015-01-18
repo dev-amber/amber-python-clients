@@ -12,16 +12,20 @@ if __name__ == '__main__':
     client = amber_client.AmberClient(ip)
     proxy = drive_to_point.DriveToPointProxy(client, 0)
 
-    targets = [drive_to_point.Point(2447.25, 4221.25, 100.0),
-               drive_to_point.Point(1467.06, 4142.85, 100.0),
-               drive_to_point.Point(673.888, 3769.64, 100.0),
-               drive_to_point.Point(473.391, 2967.81, 100.0)]
+    targets = [drive_to_point.Point(2.44725, 4.22125, 0.25),
+               drive_to_point.Point(1.46706, 4.14285, 0.25),
+               drive_to_point.Point(0.67388, 3.76964, 0.25),
+               drive_to_point.Point(0.47339, 2.96781, 0.25)]
     proxy.set_targets(targets)
 
-    while True:
+    alive = True
+    while alive:
         result_next_targets = proxy.get_next_targets()
         result_visited_targets = proxy.get_visited_targets()
         next_targets = result_next_targets.get_result()
         visited_targets = result_visited_targets.get_result()
         print "next targets: %s, visited targets: %s" % (next_targets, visited_targets)
         time.sleep(1)
+        alive = len(next_targets) > 0
+
+    client.terminate()
