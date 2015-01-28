@@ -1,7 +1,9 @@
 import logging
 import logging.config
+import threading
 
 import abc
+from ambercommon.common import runtime
 import os
 
 import drivermsg_pb2
@@ -26,9 +28,20 @@ class AmberProxy(object):
         self.device_type, self.device_id = device_type, device_id
         self.__amber_client = amber_client
 
+        amber_client.register_proxy(device_type, device_id, self)
+
+        self.__syn_num = 0
+        self.__syn_num_lock = threading.Lock()
+
+        self.__future_objs = {}
+        self.__future_objs_lock = threading.Lock()
+
+        self.__listeners = []
+        self.__listeners_lock = threading.Lock()
+
         self.__logger = logging.getLogger(LOGGER_NAME)
 
-        amber_client.register_proxy(device_type, device_id, self)
+        runtime.add_shutdown_hook(self.terminate_proxy)
 
     @abc.abstractmethod
     def handle_data_msg(self, header, message):
@@ -70,3 +83,56 @@ class AmberProxy(object):
         driver_msg_builder.type = drivermsg_pb2.DriverMsg.CLIENT_DIED
 
         self.__amber_client.send_message(self.build_header(), driver_msg_builder)
+
+    def get_next_syn_num(self):
+        self.__syn_num_lock.acquire()
+        try:
+            self.__syn_num += 1
+            return self.__syn_num
+        finally:
+            self.__syn_num_lock.release()
+
+    def get_future_object(self, ack_num):
+        obj = None
+        self.__future_objs_lock.acquire()
+        try:
+            if ack_num in self.__future_objs:
+                obj = self.__future_objs[ack_num]
+                del self.__future_objs[ack_num]
+        finally:
+            self.__future_objs_lock.release()
+        return obj
+
+    def set_future_object(self, syn_num, value):
+        self.__future_objs_lock.acquire()
+        try:
+            self.__future_objs[syn_num] = value
+        finally:
+            self.__future_objs_lock.release()
+
+    def append_listener(self, listener):
+        self.__listeners_lock.acquire()
+        try:
+            listeners_count = len(self.__listeners)
+            self.__listeners.append(listener)
+            return listeners_count
+        finally:
+            self.__listeners_lock.release()
+
+    def remove_listener(self, listener=None):
+        self.__listeners_lock.acquire()
+        try:
+            if listener is not None:
+                self.__listeners.remove(listener)
+            else:
+                del self.__listeners[:]
+            return len(self.__listeners)
+        finally:
+            self.__listeners_lock.release()
+
+    def get_listeners(self):
+        self.__listeners_lock.acquire()
+        try:
+            return self.__listeners[:]
+        finally:
+            self.__listeners_lock.release()

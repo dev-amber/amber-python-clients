@@ -1,4 +1,3 @@
-import sys
 import time
 
 from amberclient.common import amber_client
@@ -17,6 +16,7 @@ class DummyListener(Listener):
 if __name__ == '__main__':
     ip = raw_input('IP (default: 127.0.0.1): ')
     ip = '127.0.0.1' if ip is None or len(ip) == 0 else ip
+
     client = amber_client.AmberClient(ip)
     proxy = dummy.DummyProxy(client, 0)
 
@@ -38,6 +38,6 @@ if __name__ == '__main__':
     time.sleep(1)
 
     proxy.unsubscribe()
-    client.terminate()
 
-    sys.stderr.write('bye\n')
+    proxy.terminate_proxy()
+    client.terminate_client()

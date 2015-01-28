@@ -7,8 +7,8 @@ import traceback
 import socket
 
 import os
+from ambercommon.common import runtime
 
-from amberclient.common import runtime
 import drivermsg_pb2
 
 
@@ -33,40 +33,44 @@ class AmberClient(object):
         """
         self.__logger = logging.getLogger(LOGGER_NAME)
 
-        self.__proxy_lock = threading.Lock()
-        self.__proxy_lock.acquire()
-        try:
-            self.__proxy = None
-        finally:
-            self.__socket_lock.release()
+        self.__proxy = None
+        self.__hostname, self.__port = hostname, port
 
-        self.__socket_lock = threading.Lock()
-        self.__socket_lock.acquire()
-        try:
-            self.__hostname, self.__port = hostname, port
-            self.__socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            self.__socket.setblocking(False)
-            self.__socket.settimeout(0.5)
-        finally:
-            self.__socket_lock.release()
+        self.__socket_sendto_lock = threading.Lock()
+        self.__socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.__socket.setblocking(False)
+        self.__socket.settimeout(0.5)
 
         self.__alive = True
         self.__receiving_thread = threading.Thread(target=self.message_receiving_loop,
                                                    name="receiving-thread-%s" % str(name))
         self.__receiving_thread.start()
 
-        runtime.add_shutdown_hook(self.terminate)
+        runtime.add_shutdown_hook(self.terminate_client)
 
     def register_proxy(self, device_type, device_id, proxy):
         """
         Registers AmberProxy in amberclient.
         """
-        self.__socket_lock.acquire()
+        self.__proxy = proxy
+
+    def send_message(self, header, message):
+        """
+        Sends message to the robot.
+        """
+        self.__logger.debug("Sending message for (%d: %d)" % (header.deviceType, header.deviceID))
+        stream = AmberClient.__prepare_stream_from_header_and_message(header, message)
+        self.__socket_sendto_lock.acquire()
         try:
-            if self.__proxy is None:
-                self.__proxy = proxy
+            self.__socket.sendto(stream, (self.__hostname, self.__port))
         finally:
-            self.__socket_lock.release()
+            self.__socket_sendto_lock.release()
+
+    @staticmethod
+    def __prepare_stream_from_header_and_message(header, message):
+        data_header = AmberClient.__serialize_data(header)
+        data_message = AmberClient.__serialize_data(message)
+        return data_header + data_message
 
     @staticmethod
     def __serialize_data(data):
@@ -74,42 +78,13 @@ class AmberClient(object):
         data = struct.pack('!h', len(data)) + data
         return data
 
-    def send_message(self, header, message):
-        """
-        Sends message to the robot.
-        """
-        self.__logger.debug("Sending message for (%d: %d)" % (header.deviceType, header.deviceID))
-
-        data_header = AmberClient.__serialize_data(header)
-        data_message = AmberClient.__serialize_data(message)
-        stream = data_header + data_message
-
-        self.__socket_lock.acquire()
-        try:
-            self.__socket.sendto(stream, (self.__hostname, self.__port))
-        finally:
-            self.__socket_lock.release()
-
-    def terminate(self, *args, **kwargs):
+    def terminate_client(self, *args, **kwargs):
         """
         Terminates amberclient.
         """
-        self.__logger.info("Terminate amberclient.")
-
-        self.terminate_proxy()
+        self.__logger.info("Terminate amber client and proxy.")
         self.__alive = False
-
-        self.__socket_lock.acquire()
-        try:
-            self.__socket.close()
-        finally:
-            self.__socket_lock.release()
-
-    def terminate_proxy(self):
-        """
-        Terminates all registered proxies.
-        """
-        self.__proxy.terminate_proxy()
+        self.__socket.close()
 
     @staticmethod
     def __deserialize_data(packet):
@@ -131,33 +106,26 @@ class AmberClient(object):
         return header, message
 
     def message_receiving_loop(self):
-        # noinspection PyBroadException
         while self.__alive:
             try:
-                # we cannot synchronized access to this due to blocking
                 packet = self.__socket.recv(RECEIVING_BUFFER_SIZE)
                 header, message = AmberClient.__deserialize_data(packet)
 
                 try:
-                    if not header.HasField('deviceType') \
-                            or not header.HasField('deviceID') \
-                            or header.HasField('deviceType') == 0:
+                    if not header.HasField('deviceType') or not header.HasField('deviceID') or header.deviceType == 0:
                         self.__handle_message_from_mediator(header, message)
 
                     else:
                         if self.__proxy is not None:
                             self.__handle_message_from_driver(header, message, self.__proxy)
                         else:
-                            self.__logger.warn('Cannot find amberclient proxy for device type %d and device ID %d' %
-                                               (header.deviceType, header.deviceID))
-
-                except Exception as e:
-                    # FIXME: silent pass?
-                    traceback.print_exc()
+                            self.__logger.warn('Cannot find proxy for device type %d and device ID %d',
+                                               header.deviceType, header.deviceID)
+                except BaseException as e:
                     self.__logger.warn('Unknown error: %s' % str(e))
+                    traceback.print_exc()
 
             except timeout:
-                # FIXME: silent pass?
                 pass
 
     def __handle_message_from_mediator(self, header, message):
@@ -183,27 +151,27 @@ class AmberClient(object):
         msg_type = message.type
         if msg_type == drivermsg_pb2.DriverMsg.DATA:
             self.__logger.debug('DATA message came for device type %d and device ID %d',
-                                client_proxy.deviceType, client_proxy.deviceID)
+                                client_proxy.device_type, client_proxy.device_id)
             client_proxy.handle_data_msg(header, message)
 
         elif msg_type == drivermsg_pb2.DriverMsg.PING:
             self.__logger.debug('PING message came for device type %d and device ID %d',
-                                client_proxy.deviceType, client_proxy.deviceID)
+                                client_proxy.device_type, client_proxy.device_id)
             client_proxy.handle_ping_message(header, message)
 
         elif msg_type == drivermsg_pb2.DriverMsg.PONG:
             self.__logger.debug('PONG message came for device type %d and device ID %d',
-                                client_proxy.deviceType, client_proxy.deviceID)
+                                client_proxy.device_type, client_proxy.device_id)
             client_proxy.handle_pong_message(header, message)
 
         elif msg_type == drivermsg_pb2.DriverMsg.DRIVER_DIED:
             self.__logger.info('DRIVER_DIED message came for device type %d and device ID %d',
-                               client_proxy.deviceType, client_proxy.deviceID)
+                               client_proxy.device_type, client_proxy.device_id)
             client_proxy.handle_driver_died_message(header, message)
 
         else:
             self.__logger.warning('Unexpected message came %s for (%d: %d), ignoring.',
-                                  str(msg_type), client_proxy.deviceType, client_proxy.deviceID)
+                                  str(msg_type), client_proxy.device_type, client_proxy.device_id)
 
     def __handle_ping_message(self, header, message):
         self.__logger.info('Handle PING message from (%s: %s), nothing to do.',

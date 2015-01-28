@@ -20,176 +20,125 @@ logging.config.fileConfig('%s/drive_to_point.ini' % pwd)
 class DriveToPointProxy(amber_proxy.AmberProxy):
     def __init__(self, amber_client, device_id):
         super(DriveToPointProxy, self).__init__(DEVICE_TYPE, device_id, amber_client)
-        self.__amber_client, self.__syn_num, self.__future_objs, self.__listener = amber_client, 0, {}, None
-
+        self.__amber_client = amber_client
         self.__logger = logging.getLogger(LOGGER_NAME)
-
         self.__logger.info('Starting and registering DriveToPointProxy.')
 
     def handle_data_msg(self, header, message):
-        """
-        Handle DATA message type. Must be implemented.
-        It services responses for requested operation and subscribed data.
-
-        :param header:
-        :param message:
-        :return:
-        """
         self.__logger.debug('Handling data message')
 
         if message.HasField('ackNum') and message.ackNum != 0:
-            ack_num = message.ackNum
-            if ack_num in self.__future_objs:
-                obj = self.__future_objs[ack_num]
-                del self.__future_objs[ack_num]
+            obj = self.get_future_object(message.ackNum)
+            if isinstance(obj, Result):
+                if message.Extensions[drive_to_point_pb2.getNextTarget] or \
+                        message.Extensions[drive_to_point_pb2.getVisitedTarget]:
+                    DriveToPointProxy.__fill_target(obj, message)
 
-                if isinstance(obj, Result):
-                    if message.Extensions[drive_to_point_pb2.getNextTarget] or \
-                            message.Extensions[drive_to_point_pb2.getVisitedTarget]:
-                        self.__fill_target(obj, message)
+                elif message.Extensions[drive_to_point_pb2.getNextTargets] or \
+                        message.Extensions[drive_to_point_pb2.getVisitedTargets]:
+                    DriveToPointProxy.__fill_targets(obj, message)
 
-                    elif message.Extensions[drive_to_point_pb2.getNextTargets] or \
-                            message.Extensions[drive_to_point_pb2.getVisitedTargets]:
-                        self.__fill_targets(obj, message)
-
-                    elif message.Extensions[drive_to_point_pb2.getConfiguration]:
-                        self.__fill_configuration(obj, message)
-
-    def __get_next_syn_num(self):
-        self.__syn_num += 1
-        return self.__syn_num
+                elif message.Extensions[drive_to_point_pb2.getConfiguration]:
+                    DriveToPointProxy.__fill_configuration(obj, message)
 
     def set_targets(self, targets):
         self.__logger.debug('Set targets')
-
-        driver_msg = self.__build_set_targets_req_msg(targets)
+        driver_msg = DriveToPointProxy.__build_set_targets_req_msg(targets)
         self.__amber_client.send_message(self.build_header(), driver_msg)
 
     @staticmethod
     def __build_set_targets_req_msg(targets):
         driver_msg = drivermsg_pb2.DriverMsg()
-
         driver_msg.type = drivermsg_pb2.DriverMsg.DATA
         driver_msg.Extensions[drive_to_point_pb2.setTargets] = True
         driver_msg.Extensions[drive_to_point_pb2.targets].longitudes.extend(map(lambda t: t.x, targets))
         driver_msg.Extensions[drive_to_point_pb2.targets].latitudes.extend(map(lambda t: t.y, targets))
         driver_msg.Extensions[drive_to_point_pb2.targets].radiuses.extend(map(lambda t: t.r, targets))
-
         return driver_msg
 
     def get_next_target(self):
         self.__logger.debug('Get next target')
-
-        syn_num = self.__get_next_syn_num()
-        driver_msg = self.__build_get_next_target_req_msg(syn_num)
-
+        syn_num = self.get_next_syn_num()
+        driver_msg = DriveToPointProxy.__build_get_next_target_req_msg(syn_num)
         result = Result()
-        self.__future_objs[syn_num] = result
-
+        self.set_future_object(syn_num, result)
         self.__amber_client.send_message(self.build_header(), driver_msg)
-
         return result
 
     @staticmethod
     def __build_get_next_target_req_msg(syn_num):
         driver_msg = drivermsg_pb2.DriverMsg()
-
         driver_msg.type = drivermsg_pb2.DriverMsg.DATA
         driver_msg.Extensions[drive_to_point_pb2.getNextTarget] = True
         driver_msg.synNum = syn_num
-
         return driver_msg
 
     def get_next_targets(self):
         self.__logger.debug('Get next targets')
-
-        syn_num = self.__get_next_syn_num()
-        driver_msg = self.__build_get_next_targets_req_msg(syn_num)
-
+        syn_num = self.get_next_syn_num()
+        driver_msg = DriveToPointProxy.__build_get_next_targets_req_msg(syn_num)
         result = Result()
-        self.__future_objs[syn_num] = result
-
+        self.set_future_object(syn_num, result)
         self.__amber_client.send_message(self.build_header(), driver_msg)
-
         return result
 
     @staticmethod
     def __build_get_next_targets_req_msg(syn_num):
         driver_msg = drivermsg_pb2.DriverMsg()
-
         driver_msg.type = drivermsg_pb2.DriverMsg.DATA
         driver_msg.Extensions[drive_to_point_pb2.getNextTargets] = True
         driver_msg.synNum = syn_num
-
         return driver_msg
 
     def get_visited_target(self):
         self.__logger.debug('Get visited target')
-
-        syn_num = self.__get_next_syn_num()
-        driver_msg = self.__build_get_visited_target_req_msg(syn_num)
-
+        syn_num = self.get_next_syn_num()
+        driver_msg = DriveToPointProxy.__build_get_visited_target_req_msg(syn_num)
         result = Result()
-        self.__future_objs[syn_num] = result
-
+        self.set_future_object(syn_num, result)
         self.__amber_client.send_message(self.build_header(), driver_msg)
-
         return result
 
     @staticmethod
     def __build_get_visited_target_req_msg(syn_num):
         driver_msg = drivermsg_pb2.DriverMsg()
-
         driver_msg.type = drivermsg_pb2.DriverMsg.DATA
         driver_msg.Extensions[drive_to_point_pb2.getVisitedTarget] = True
         driver_msg.synNum = syn_num
-
         return driver_msg
 
     def get_visited_targets(self):
         self.__logger.debug('Get visited targets')
-
-        syn_num = self.__get_next_syn_num()
-        driver_msg = self.__build_get_visited_targets_req_msg(syn_num)
-
+        syn_num = self.get_next_syn_num()
+        driver_msg = DriveToPointProxy.__build_get_visited_targets_req_msg(syn_num)
         result = Result()
-        self.__future_objs[syn_num] = result
-
+        self.set_future_object(syn_num, result)
         self.__amber_client.send_message(self.build_header(), driver_msg)
-
         return result
 
     @staticmethod
     def __build_get_visited_targets_req_msg(syn_num):
         driver_msg = drivermsg_pb2.DriverMsg()
-
         driver_msg.type = drivermsg_pb2.DriverMsg.DATA
         driver_msg.Extensions[drive_to_point_pb2.getVisitedTargets] = True
         driver_msg.synNum = syn_num
-
         return driver_msg
 
     def get_configuration(self):
         self.__logger.debug('Get configuration')
-
-        syn_num = self.__get_next_syn_num()
-        driver_msg = self.__build_get_configuration_req_msg(syn_num)
-
+        syn_num = self.get_next_syn_num()
+        driver_msg = DriveToPointProxy.__build_get_configuration_req_msg(syn_num)
         result = Result()
-        self.__future_objs[syn_num] = result
-
+        self.set_future_object(syn_num, result)
         self.__amber_client.send_message(self.build_header(), driver_msg)
-
         return result
 
     @staticmethod
     def __build_get_configuration_req_msg(syn_num):
         driver_msg = drivermsg_pb2.DriverMsg()
-
         driver_msg.type = drivermsg_pb2.DriverMsg.DATA
         driver_msg.Extensions[drive_to_point_pb2.getConfiguration] = True
         driver_msg.synNum = syn_num
-
         return driver_msg
 
     @staticmethod
@@ -197,7 +146,7 @@ class DriveToPointProxy(amber_proxy.AmberProxy):
         _targets = message.Extensions[drive_to_point_pb2.targets]
         _targets = zip(_targets.longitudes, _targets.latitudes, _targets.radiuses)
         _target = _targets[0] if len(_targets) > 0 else None
-        _target = Point(*_target) if not _target is None else None
+        _target = Point(*_target) if _target is not None else None
         _location = message.Extensions[drive_to_point_pb2.location]
         _location = Location(_location.x, _location.y, _location.p, _location.alfa, _location.timeStamp)
         result.set_result(_target)

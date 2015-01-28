@@ -29,6 +29,7 @@ class FutureObject(object):
         self.__cond.acquire()
         try:
             if not self.__available:
+                # It may block if timeout is None.
                 self.__cond.wait(timeout)
         finally:
             self.__cond.release()

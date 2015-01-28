@@ -7,6 +7,6 @@ export AMBER_DIR=${ROOT_DIR}/src/amberclient
 export COMMON_DIR=${AMBER_DIR}/common
 
 protoc -I ${COMMON_DIR} --python_out=${COMMON_DIR} ${COMMON_DIR}/drivermsg.proto
-for pp in hokuyo location ninedof roboclaw dummy drive_to_point; do
+for pp in hokuyo location ninedof roboclaw dummy drive_to_point collision_avoidance; do
     protoc -I ${COMMON_DIR} -I ${AMBER_DIR}/${pp} --python_out=${AMBER_DIR}/${pp} ${AMBER_DIR}/${pp}/${pp}.proto
 done
