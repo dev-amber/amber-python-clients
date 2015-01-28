@@ -23,7 +23,7 @@ class AmberProxy(object):
         """
         Generic proxy constructor. Must be invoked from subclasses.
         """
-        self.deviceType, self.deviceID = device_type, device_id
+        self.device_type, self.device_id = device_type, device_id
         self.__amber_client = amber_client
 
         self.__logger = logging.getLogger(LOGGER_NAME)
@@ -55,8 +55,8 @@ class AmberProxy(object):
     def build_header(self):
         driver_hdr_builder = drivermsg_pb2.DriverHdr()
 
-        driver_hdr_builder.deviceType = self.deviceType
-        driver_hdr_builder.deviceID = self.deviceID
+        driver_hdr_builder.deviceType = self.device_type
+        driver_hdr_builder.deviceID = self.device_id
 
         return driver_hdr_builder
 

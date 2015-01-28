@@ -27,25 +27,31 @@ class FutureObject(object):
         Blocks until data is available.
         """
         self.__cond.acquire()
-        if not self.__available:
-            self.__cond.wait(timeout)
-        self.__cond.release()
+        try:
+            if not self.__available:
+                self.__cond.wait(timeout)
+        finally:
+            self.__cond.release()
 
     def set_available(self):
         """
         Sets the object is available and notifies all waiting clients.
         """
         self.__cond.acquire()
-        self.__available = True
-        self.__cond.notifyAll()
-        self.__cond.release()
+        try:
+            self.__available = True
+            self.__cond.notifyAll()
+        finally:
+            self.__cond.release()
 
     def set_exception(self, e):
         """
         Sets exception and notifies all waiting clients.
         """
         self.__cond.acquire()
-        self.__available = True
-        self.__exception = e
-        self.__cond.notifyAll()
-        self.__cond.release()
+        try:
+            self.__available = True
+            self.__exception = e
+            self.__cond.notifyAll()
+        finally:
+            self.__cond.release()
