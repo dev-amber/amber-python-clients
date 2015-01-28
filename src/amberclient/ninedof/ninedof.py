@@ -124,7 +124,7 @@ class NinedofData(future_object.FutureObject):
         self.__accel, self.__gyro, self.__magnet = None, None, None
 
     def __str__(self):
-        return "accel: %s\ngyro: %s\nmagnet: %s" % (self.__accel, self.__gyro, self.__magnet)
+        return "Sensors: accel: %s\ngyro: %s\nmagnet: %s" % (self.__accel, self.__gyro, self.__magnet)
 
     def get_accel(self):
         if not self.is_available():

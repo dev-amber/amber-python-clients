@@ -92,8 +92,8 @@ class RoboclawProxy(amber_proxy.AmberProxy):
 class MotorsCurrentSpeed(future_object.FutureObject):
     def __init__(self):
         super(MotorsCurrentSpeed, self).__init__()
-        self.__front_left_speed, self.__front_right_speed = 0, 0
-        self.__rear_left_speed, self.__rear_right_speed = 0, 0
+        self.__front_left_speed, self.__front_right_speed = None, None
+        self.__rear_left_speed, self.__rear_right_speed = None, None
 
     def __str__(self):
         return "Speed: fl=%d, fr=%d, rl=%d, rr=%d" % (self.__front_left_speed, self.__front_right_speed,
