@@ -28,7 +28,7 @@ class AmberProxy(object):
         self.device_type, self.device_id = device_type, device_id
         self.__amber_client = amber_client
 
-        amber_client.register_proxy(device_type, device_id, self)
+        amber_client.register_proxy(self)
 
         self.__syn_num = 0
         self.__syn_num_lock = threading.Lock()

@@ -25,9 +25,9 @@ if __name__ == '__main__':
         result_visited_targets = proxy.get_visited_targets()
         next_targets = result_next_targets.get_result()
         visited_targets = result_visited_targets.get_result()
-        print "next targets: %s, visited targets: %s" % (next_targets, visited_targets)
+        print 'next targets: %s, visited targets: %s' % (next_targets, visited_targets)
         time.sleep(1)
-        alive = len(next_targets) > 0
+        alive = next_targets is not None and len(next_targets) > 0
 
     proxy.terminate_proxy()
     client.terminate_client()

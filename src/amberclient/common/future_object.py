@@ -18,7 +18,7 @@ class FutureObject(object):
         """
         Check if data is available.
         """
-        if self.__exception is not None:
+        if self.__exception is not None and issubclass(type(self.__exception), BaseException):
             raise self.__exception
         return self.__available
 

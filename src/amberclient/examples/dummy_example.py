@@ -22,14 +22,14 @@ if __name__ == '__main__':
 
     status = proxy.get_status()
     status.wait_available()
-    print(status)
+    print 'enable: %s, message: %s' % (status.get_enable(), status.get_message())
 
     proxy.set_enable(True)
     proxy.set_message('Hello')
 
     status = proxy.get_status()
     status.wait_available()
-    print(status)
+    print 'enable: %s, message: %s' % (status.get_enable(), status.get_message())
 
     time.sleep(1)
 

@@ -21,17 +21,12 @@ if __name__ == '__main__':
     proxy = hokuyo.HokuyoProxy(client, 0)
 
     proxy.enable_scanning(True)
-
-    time.sleep(10)
-
     for i in range(10):
         scan = proxy.get_single_scan()
         print '%f: %s, %s...' % (time.time(), str(scan.get_timestamp()), str(scan.get_points())[:50])
-
     proxy.subscribe(HokuyoListener())
-
-    time.sleep(10)
-
+    time.sleep(2)
+    proxy.unsubscribe()
     proxy.enable_scanning(False)
 
     proxy.terminate_proxy()

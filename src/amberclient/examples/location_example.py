@@ -1,5 +1,8 @@
+import time
+
 from amberclient.common import amber_client
 from amberclient.location import location
+
 
 __author__ = 'paoolo'
 
@@ -10,8 +13,10 @@ if __name__ == '__main__':
     client = amber_client.AmberClient(ip)
     proxy = location.LocationProxy(client, 0)
 
-    _location = proxy.get_location()
-    print _location.get_location()
+    for p in range(100):
+        _location = proxy.get_location()
+        print _location.get_location()
+        time.sleep(0.1)
 
     proxy.terminate_proxy()
     client.terminate_client()

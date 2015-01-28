@@ -91,7 +91,7 @@ class DummyProxy(amber_proxy.AmberProxy):
         :param value:
         :return:
         """
-        self.__logger.debug('Set enable to %s' % value)
+        self.__logger.debug('Set enable to %s', value)
         driver_msg = DummyProxy.__build_set_enable_req_msg(value)
         self.__amber_client.send_message(self.build_header(), driver_msg)
 
@@ -109,7 +109,7 @@ class DummyProxy(amber_proxy.AmberProxy):
         :param message:
         :return:
         """
-        self.__logger.debug('Set message to %s' % message)
+        self.__logger.debug('Set message to %s', message)
         driver_msg = DummyProxy.__build_set_message_req_msg(message)
         self.__amber_client.send_message(self.build_header(), driver_msg)
 

@@ -12,10 +12,11 @@ if __name__ == '__main__':
     client = amber_client.AmberClient(ip)
     proxy = roboclaw.RoboclawProxy(client, 0)
 
-    proxy.send_motors_command(100, 100, 100, 100)
-    print(proxy.get_current_motors_speed())
-
-    time.sleep(10)
+    for p in range(50):
+        proxy.send_motors_command(100, 100, 100, 100)
+        cms = proxy.get_current_motors_speed()
+        print cms.get_front_left_speed(), cms.get_front_right_speed(), cms.get_rear_left_speed(), cms.get_rear_right_speed()
+        time.sleep(0.1)
 
     proxy.terminate_proxy()
     client.terminate_client()

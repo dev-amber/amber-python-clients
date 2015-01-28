@@ -48,7 +48,7 @@ class AmberClient(object):
 
         runtime.add_shutdown_hook(self.terminate_client)
 
-    def register_proxy(self, device_type, device_id, proxy):
+    def register_proxy(self, proxy):
         """
         Registers AmberProxy in amberclient.
         """
@@ -58,7 +58,7 @@ class AmberClient(object):
         """
         Sends message to the robot.
         """
-        self.__logger.debug("Sending message for (%d: %d)" % (header.deviceType, header.deviceID))
+        self.__logger.debug("Sending message for (%d: %d)", header.deviceType, header.deviceID)
         stream = AmberClient.__prepare_stream_from_header_and_message(header, message)
         self.__socket_sendto_lock.acquire()
         try:
@@ -78,7 +78,7 @@ class AmberClient(object):
         data = struct.pack('!h', len(data)) + data
         return data
 
-    def terminate_client(self, *args, **kwargs):
+    def terminate_client(self):
         """
         Terminates amberclient.
         """
@@ -122,7 +122,7 @@ class AmberClient(object):
                             self.__logger.warn('Cannot find proxy for device type %d and device ID %d',
                                                header.deviceType, header.deviceID)
                 except BaseException as e:
-                    self.__logger.warn('Unknown error: %s' % str(e))
+                    self.__logger.warn('Unknown error: %s', str(e))
                     traceback.print_exc()
 
             except timeout:
@@ -173,10 +173,10 @@ class AmberClient(object):
             self.__logger.warning('Unexpected message came %s for (%d: %d), ignoring.',
                                   str(msg_type), client_proxy.device_type, client_proxy.device_id)
 
-    def __handle_ping_message(self, header, message):
+    def __handle_ping_message(self, header, _):
         self.__logger.info('Handle PING message from (%s: %s), nothing to do.',
                            str(header.deviceType), str(header.deviceID))
 
-    def __handle_pong_message(self, header, message):
+    def __handle_pong_message(self, header, _):
         self.__logger.info('Handle PONG message from (%s: %s), nothing to do.',
                            str(header.deviceType), str(header.deviceID))

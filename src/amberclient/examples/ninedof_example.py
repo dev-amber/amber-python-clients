@@ -20,8 +20,9 @@ if __name__ == '__main__':
     client = amber_client.AmberClient(ip)
     proxy = ninedof.NinedofProxy(client, 0)
 
-    print(proxy.get_sensor_data(True, True, True))
-    proxy.subscribe(1, True, True, True, NinedofListener())
+    sensor_data = proxy.get_sensor_data(accel=True, gyro=True, magnet=True)
+    print sensor_data.get_accel(), sensor_data.get_gyro(), sensor_data.get_magnet()
+    proxy.subscribe(NinedofListener(), accel=True, gyro=True, magnet=True, freq=100)
 
     time.sleep(10)
 
