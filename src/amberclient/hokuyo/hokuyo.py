@@ -12,7 +12,8 @@ __author__ = 'paoolo'
 
 DEVICE_TYPE = 4
 
-LOGGER_NAME = 'HokuyoProxy'
+LOGGER_NAME = 'Hokuyo'
+
 pwd = os.path.dirname(os.path.abspath(__file__))
 logging.config.fileConfig('%s/hokuyo.ini' % pwd)
 

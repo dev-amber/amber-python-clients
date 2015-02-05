@@ -12,7 +12,8 @@ __author__ = 'paoolo'
 
 DEVICE_TYPE = 2
 
-LOGGER_NAME = 'RoboclawProxy'
+LOGGER_NAME = 'Roboclaw'
+
 pwd = os.path.dirname(os.path.abspath(__file__))
 logging.config.fileConfig('%s/roboclaw.ini' % pwd)
 

@@ -12,7 +12,8 @@ __author__ = 'paoolo'
 
 DEVICE_TYPE = 5
 
-LOGGER_NAME = 'DummyProxy'
+LOGGER_NAME = 'Dummy'
+
 pwd = os.path.dirname(os.path.abspath(__file__))
 logging.config.fileConfig('%s/dummy.ini' % pwd)
 

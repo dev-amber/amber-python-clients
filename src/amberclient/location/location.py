@@ -12,7 +12,8 @@ __author__ = 'paoolo'
 
 DEVICE_TYPE = 6
 
-LOGGER_NAME = 'LocationProxy'
+LOGGER_NAME = 'Location'
+
 pwd = os.path.dirname(os.path.abspath(__file__))
 logging.config.fileConfig('%s/location.ini' % pwd)
 

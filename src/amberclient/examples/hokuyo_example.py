@@ -10,7 +10,7 @@ __author__ = 'paoolo'
 
 class HokuyoListener(Listener):
     def handle(self, response):
-        print '%f: %s, %s...' % (time.time(), str(scan.get_timestamp()), str(response.get_points())[:50])
+        print '%f: %s, %s...' % (time.time(), str(response.get_timestamp()), str(response.get_points())[:50])
 
 
 if __name__ == '__main__':
@@ -21,11 +21,12 @@ if __name__ == '__main__':
     proxy = hokuyo.HokuyoProxy(client, 0)
 
     proxy.enable_scanning(True)
-    for i in range(10):
+    for i in range(50):
         scan = proxy.get_single_scan()
         print '%f: %s, %s...' % (time.time(), str(scan.get_timestamp()), str(scan.get_points())[:50])
+    print '---'
     proxy.subscribe(HokuyoListener())
-    time.sleep(2)
+    time.sleep(5)
     proxy.unsubscribe()
     proxy.enable_scanning(False)
 

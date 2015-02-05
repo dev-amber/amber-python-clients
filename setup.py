@@ -1,14 +1,22 @@
 # coding=utf-8
 # !/usr/bin/env python
 
-try:
-    from setuptools import setup
-except ImportError:
-    print 'No setuptools installed, use distutils'
-    from distutils.core import setup
+import os
+
+from setuptools.command.install import install as _install
+from setuptools import setup
+
+pwd = os.path.dirname(os.path.abspath(__file__))
 
 with open('requirements.txt') as f:
     required = f.read().splitlines()
+
+
+class Install(_install):
+    def run(self):
+        os.system('%s/protoc.sh' % pwd)
+        _install.run(self)
+
 
 setup(
     name='amber-python-clients',
@@ -21,7 +29,6 @@ setup(
         'amberclient.roboclaw',
         'amberclient.location',
         'amberclient.drive_to_point',
-        'amberclient.collision_avoidance',
         'amberclient.examples'
     ],
     package_dir={
@@ -33,7 +40,6 @@ setup(
         'amberclient.roboclaw': 'src/amberclient/roboclaw',
         'amberclient.location': 'src/amberclient/location',
         'amberclient.drive_to_point': 'src/amberclient/drive_to_point',
-        'amberclient.collision_avoidance': 'src/amberclient/collision_avoidance',
         'amberclient.examples': 'src/amberclient/examples'
     },
     package_data={'': [
@@ -43,8 +49,7 @@ setup(
         'src/amberclient/ninedof/ninedof.ini',
         'src/amberclient/roboclaw/roboclaw.ini',
         'src/amberclient/location/location.ini',
-        'src/amberclient/drive_to_point/drive_to_point.ini',
-        'src/amberclient/collision_avoidance/collision_avoidance.ini'
+        'src/amberclient/drive_to_point/drive_to_point.ini'
     ]},
     data_files=[
         ('', [
@@ -54,14 +59,16 @@ setup(
             'src/amberclient/ninedof/ninedof.ini',
             'src/amberclient/roboclaw/roboclaw.ini',
             'src/amberclient/location/location.ini',
-            'src/amberclient/drive_to_point/drive_to_point.ini',
-            'src/amberclient/collision_avoidance/collision_avoidance.ini'
+            'src/amberclient/drive_to_point/drive_to_point.ini'
         ]),
     ],
+    cmdclass={
+        'install': Install
+    },
     test_suite="amberclient.tests",
     include_package_data=True,
     install_requires=required,
-    version='0.14',
+    version='0.15',
     description='Amber clients in python',
     author=u'Paweł Suder',
     author_email='pawel@suder.info',
@@ -75,7 +82,6 @@ setup(
         'roboclaw',
         'location',
         'drive to point',
-        'collision avoidance',
         'panda'
     ],
     classifiers=[

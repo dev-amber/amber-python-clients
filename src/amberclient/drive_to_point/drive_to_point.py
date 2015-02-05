@@ -12,7 +12,8 @@ __author__ = 'paoolo'
 
 DEVICE_TYPE = 8
 
-LOGGER_NAME = 'DriveToPointProxy'
+LOGGER_NAME = 'DriveToPoint'
+
 pwd = os.path.dirname(os.path.abspath(__file__))
 logging.config.fileConfig('%s/drive_to_point.ini' % pwd)
 

@@ -15,6 +15,7 @@ import drivermsg_pb2
 __author__ = 'paoolo'
 
 LOGGER_NAME = 'AmberClient'
+
 pwd = os.path.dirname(os.path.abspath(__file__))
 logging.config.fileConfig('%s/amber.ini' % pwd)
 

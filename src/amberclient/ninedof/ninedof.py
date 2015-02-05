@@ -12,7 +12,8 @@ __author__ = 'paoolo'
 
 DEVICE_TYPE = 1
 
-LOGGER_NAME = 'NinedofProxy'
+LOGGER_NAME = 'Ninedof'
+
 pwd = os.path.dirname(os.path.abspath(__file__))
 logging.config.fileConfig('%s/ninedof.ini' % pwd)
 
