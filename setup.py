@@ -68,7 +68,7 @@ setup(
     test_suite="amberclient.tests",
     include_package_data=True,
     install_requires=required,
-    version='0.15',
+    version='0.16',
     description='Amber clients in python',
     author=u'Paweł Suder',
     author_email='pawel@suder.info',
