@@ -10,7 +10,7 @@ __author__ = 'paoolo'
 
 class NinedofListener(Listener):
     def handle(self, response):
-        print str(response)
+        print 'accel: %s, gyro: %s, magnet: %s' % (response.get_accel(), response.get_gyro(), response.get_magnet())
 
 
 if __name__ == '__main__':

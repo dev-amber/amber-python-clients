@@ -101,6 +101,9 @@ class AxesData(object):
     def __init__(self, x_axis, y_axis, z_axis):
         self.x_axis, self.y_axis, self.z_axis = x_axis, y_axis, z_axis
 
+    def __str__(self):
+        return 'x: %f, y: %f, z: %f' % (self.x_axis, self.y_axis, self.z_axis)
+
 
 class NinedofData(future_object.FutureObject):
     def __init__(self):
