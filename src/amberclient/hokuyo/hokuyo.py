@@ -84,20 +84,6 @@ class HokuyoProxy(amber_proxy.AmberProxy):
         driver_msg.synNum = syn_num
         return driver_msg
 
-    def enable_scanning(self, enable_scanning=True):
-        self.__logger.debug('Enable scanning, set to %s', str(enable_scanning))
-        syn_num = self.get_next_syn_num()
-        driver_msg = HokuyoProxy.__build_enable_scanning_req_msg(syn_num, enable_scanning)
-        self.__amber_client.send_message(self.build_header(), driver_msg)
-
-    @staticmethod
-    def __build_enable_scanning_req_msg(syn_num, enable_scanning):
-        driver_msg = drivermsg_pb2.DriverMsg()
-        driver_msg.type = drivermsg_pb2.DriverMsg.DATA
-        driver_msg.Extensions[hokuyo_pb2.enable_scanning] = enable_scanning
-        driver_msg.synNum = syn_num
-        return driver_msg
-
     @staticmethod
     def __fill_scan(scan, message):
         _scan = message.Extensions[hokuyo_pb2.scan]

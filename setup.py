@@ -14,7 +14,7 @@ with open('requirements.txt') as f:
 
 class Install(_install):
     def run(self):
-        os.system('%s/protoc.sh' % pwd)
+        os.system('bash -x %s/protoc.sh' % pwd)
         _install.run(self)
 
 
@@ -68,7 +68,7 @@ setup(
     test_suite="amberclient.tests",
     include_package_data=True,
     install_requires=required,
-    version='0.16',
+    version='0.17',
     description='Amber clients in python',
     author=u'Paweł Suder',
     author_email='pawel@suder.info',
