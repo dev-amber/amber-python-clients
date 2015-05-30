@@ -1,8 +1,8 @@
+import random
 import time
 
 from amberclient.common import amber_client
 from amberclient.roboclaw import roboclaw
-
 
 __author__ = 'paoolo'
 
@@ -13,11 +13,15 @@ if __name__ == '__main__':
     client = amber_client.AmberClient(ip)
     proxy = roboclaw.RoboclawProxy(client, 0)
 
-    for p in range(50):
-        proxy.send_motors_command(100, 100, 100, 100)
+    while True:
+        proxy.send_motors_command(300 + int(random.random() * 20 - 10),
+                                  300 + int(random.random() * 20 - 10),
+                                  300 + int(random.random() * 20 - 10),
+                                  300 + int(random.random() * 20 - 10))
         cms = proxy.get_current_motors_speed()
-        print cms.get_front_left_speed(), cms.get_front_right_speed(), cms.get_rear_left_speed(), cms.get_rear_right_speed()
-        time.sleep(0.1)
+        print '%f, %f, %f, %f' % (cms.get_front_left_speed(), cms.get_front_right_speed(),
+                                  cms.get_rear_left_speed(), cms.get_rear_right_speed())
+        time.sleep(0.5)
 
     proxy.terminate_proxy()
     client.terminate_client()

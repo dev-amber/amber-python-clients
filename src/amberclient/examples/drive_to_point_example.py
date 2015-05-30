@@ -1,22 +1,36 @@
 import time
+import sys
 
 from amberclient.common import amber_client
 from amberclient.drive_to_point import drive_to_point
 
-
 __author__ = 'paoolo'
 
+
+def get_path(file_name):
+    targets = []
+    file_handler = open(file_name)
+    for line in file_handler:
+        values = line.split(';')
+        x, y, r = map(lambda v: float(v), values)
+        targets.append(drive_to_point.Point(x, y, r))
+    return targets
+
+
 if __name__ == '__main__':
-    ip = raw_input('IP (default: 127.0.0.1): ')
-    ip = '127.0.0.1' if ip is None or len(ip) == 0 else ip
+    ip = raw_input('IP (default: 192.168.2.210): ')
+    ip = '192.168.2.210' if ip is None or len(ip) == 0 else ip
+
+    if len(sys.argv) <= 1:
+        print 'Usage: cmd <path_to_file_with_track>'
+        exit()
 
     client = amber_client.AmberClient(ip)
     proxy = drive_to_point.DriveToPointProxy(client, 0)
 
-    targets = [drive_to_point.Point(2.44725, 4.22125, 0.25),
-               drive_to_point.Point(1.46706, 4.14285, 0.25),
-               drive_to_point.Point(0.67388, 3.76964, 0.25),
-               drive_to_point.Point(0.47339, 2.96781, 0.25)]
+    targets = get_path(sys.argv[1])
+    print 'set path: %s' % str(targets)
+
     proxy.set_targets(targets)
 
     alive = True
