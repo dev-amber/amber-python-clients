@@ -7,16 +7,6 @@ amber-python-clients
 [![Code Climate](https://codeclimate.com/github/project-capo/amber-python-clients/badges/gpa.svg)](https://codeclimate.com/github/project-capo/amber-python-clients)
 [![Coverage Status](https://coveralls.io/repos/project-capo/amber-python-clients/badge.svg)](https://coveralls.io/r/project-capo/amber-python-clients)
 
-[![Supported Python versions](https://pypip.in/py_versions/amber-python-clients/badge.svg?style=flat)](https://pypi.python.org/pypi/amber-python-clients/)
-[![Supported Python implementations](https://pypip.in/implementation/amber-python-clients/badge.svg?style=flat)](https://pypi.python.org/pypi/amber-python-clients/)
-[![Latest Version](https://pypip.in/version/amber-python-clients/badge.svg?style=flat)](https://pypi.python.org/pypi/amber-python-clients/)
-
-[![Development Status](https://pypip.in/status/amber-python-clients/badge.svg?style=flat)](https://pypi.python.org/pypi/amber-python-clients/)
-[![License](https://pypip.in/license/amber-python-clients/badge.svg?style=flat)](https://pypi.python.org/pypi/amber-python-clients/)
-
-[![Download format](https://pypip.in/format/amber-python-clients/badge.svg?style=flat)](https://pypi.python.org/pypi/amber-python-clients/)
-[![Downloads](https://pypip.in/download/amber-python-clients/badge.svg?style=flat)](https://pypi.python.org/pypi/amber-python-clients/)
-
 Requirements
 ------------
 
