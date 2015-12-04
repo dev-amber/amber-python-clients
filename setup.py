@@ -10,6 +10,7 @@ pwd = os.path.dirname(os.path.abspath(__file__))
 
 with open('requirements.txt') as f:
     required = f.read().splitlines()
+    required = [ req.split('#egg=')[1] if '#' in req else req for req in required ]
 
 
 class Install(_install):
