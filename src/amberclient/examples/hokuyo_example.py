@@ -21,6 +21,7 @@ if __name__ == '__main__':
 
     for i in range(50):
         scan = proxy.get_single_scan()
+        print scan.get_points()
     print '---'
     proxy.subscribe(HokuyoListener())
     time.sleep(5)
